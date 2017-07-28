@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>                                                
+
+<list>
+    <airemulator>
+        <type>1</type>
+        <subtype>2</subtype>
+        <ds tods="1" fromds="0" />
+        <protected>1</protected>
+        <duration>300</duration>
+        <addr count="2">
+            <da>00:11:22:33:44:00</da>
+            <sa>00:11:22:33:44:01</sa>
+            <bssid></bssid>
+        </addr>
+        <taglist>
+            <tag id="1" len="5" data="kinow" />
+            <tag id="2" len="5" data="231412" />
+        </taglist>
+    </airemulator>
+    
+    <airemulator>
+        <type>11</type>
+        <subtype>22</subtype>
+        <ds tods="0" fromds="1" />
+        <protected>0</protected>
+        <duration>300</duration>
+        <addr count="3">
+            <da>00:11:22:33:44:10</da>
+            <sa>00:11:22:33:44:11</sa>
+            <bssid>00:11:22:33:44:11</bssid>
+        </addr>
+        <taglist>
+            <tag id="1" len="5"  data="kinow" />
+            <tag id="2" len="6"  data="111111" />
+            <tag id="3" len="7"  data="2222222" />
+            <tag id="4" len="8"  data="33333333" />
+            <tag id="5" len="9"  data="444444444" />
+            <tag id="6" len="10" data="5555555555" />
+        </taglist>
+    </airemulator>
+</list>
