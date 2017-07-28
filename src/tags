@@ -1,0 +1,97 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CUR_VERSION	parser.h	5;"	d
+IS_MCAST_IP	format.h	49;"	d
+IS_MCAST_IP	format.h	55;"	d
+LOG_STR	log.c	/^static const char *LOG_STR[] = {$/;"	v	file:
+L_ALL	log.h	12;"	d
+L_DEBUG	log.h	11;"	d
+L_ERROR	log.h	9;"	d
+L_FATAL	log.h	8;"	d
+L_INFO	log.h	10;"	d
+MACUINT64	format.h	36;"	d
+MAC_BCAST	format.h	12;"	d
+MAC_NULL	format.h	11;"	d
+SNP	format.h	9;"	d
+VTC_BLUE	log.c	47;"	d	file:
+VTC_BOLD	log.c	51;"	d	file:
+VTC_GREEN	log.c	49;"	d	file:
+VTC_RED	log.c	48;"	d	file:
+VTC_RESET	log.c	52;"	d	file:
+VTC_YELLOW	log.c	50;"	d	file:
+_FORMAT_H_	format.h	2;"	d
+_IP_FMT_	format.h	44;"	d
+_IP_FMT_FILL_	format.h	46;"	d
+_IP_FMT_FILL_	format.h	52;"	d
+_LOG_H_	log.h	3;"	d
+_MAC_FMT_	format.h	28;"	d
+_MAC_FMT_FILL_	format.h	29;"	d
+_PARSER_	parser.h	3;"	d
+action	parser.h	/^	struct action_t action;$/;"	m	struct:config_t	typeref:struct:config_t::action_t
+action_t	parser.h	/^struct action_t {$/;"	s
+channel	parser.h	/^	uint8_t channel;$/;"	m	struct:action_t
+config_debug	parser.h	/^	void (*config_debug)(struct config_t *);$/;"	m	struct:config_operation
+config_free	parser.c	/^static void config_free(struct config_t* config) {$/;"	f	file:
+config_free	parser.h	/^	void (*config_free)(struct config_t *);$/;"	m	struct:config_operation
+config_load	parser.h	/^	struct config_t* (*config_load)(const char* filename);$/;"	m	struct:config_operation	typeref:struct:config_operation::config_load
+config_operation	parser.h	/^struct config_operation {$/;"	s
+config_t	parser.h	/^struct config_t  {$/;"	s
+console_debug	log.c	/^static void console_debug(const char* fmt, ...) {$/;"	f	file:
+console_error	log.c	/^static void console_error(const char* fmt, ...) {$/;"	f	file:
+console_fatal	log.c	/^static void console_fatal(const char* fmt, ...) {$/;"	f	file:
+console_hex_debug	log.c	/^static void console_hex_debug(uint8_t* hex, size_t len, const char* fmt, ...) {$/;"	f	file:
+console_hex_error	log.c	/^static void console_hex_error(uint8_t* hex, size_t len, const char* fmt, ...) {$/;"	f	file:
+console_hex_fatal	log.c	/^static void console_hex_fatal(uint8_t* hex, size_t len, const char* fmt, ...) {$/;"	f	file:
+console_hex_info	log.c	/^static void console_hex_info(uint8_t* hex, size_t len, const char* fmt, ...) {$/;"	f	file:
+console_info	log.c	/^static void console_info(const char* fmt, ...) {$/;"	f	file:
+console_log	log.c	/^static void console_log(int lv, const char* fmt, va_list ap, uint8_t* hex, size_t len, const char *color) {$/;"	f	file:
+cv_arr_def	parser.h	16;"	d
+cv_def	parser.h	10;"	d
+cv_disable	parser.h	24;"	d
+cv_enable	parser.h	22;"	d
+cv_enabled	parser.h	20;"	d
+d	log.h	/^	void (*d)(const char* fmt, ...);$/;"	m	struct:log_ctx
+data	parser.h	/^	uint8_t *data;$/;"	m	struct:tag_t
+dwell	parser.h	/^	uint32_t dwell;$/;"	m	struct:action_t
+e	log.h	/^	void (*e)(const char* fmt, ...);$/;"	m	struct:log_ctx
+echo	log.c	/^struct log_ctx echo = {$/;"	v	typeref:struct:log_ctx
+enable	parser.h	/^	uint8_t enable;$/;"	m	struct:action_t
+ezxml2chararr	parser.h	33;"	d
+ezxml2cv	parser.h	41;"	d
+ezxml2int	parser.h	26;"	d
+f	log.h	/^	void (*f)(const char* fmt, ...);$/;"	m	struct:log_ctx
+hd	log.h	/^	void (*hd)(uint8_t* hex, size_t len, const char* fmt, ...);$/;"	m	struct:log_ctx
+he	log.h	/^	void (*he)(uint8_t* hex, size_t len, const char* fmt, ...);$/;"	m	struct:log_ctx
+hf	log.h	/^	void (*hf)(uint8_t* hex, size_t len, const char* fmt, ...);$/;"	m	struct:log_ctx
+hi	log.h	/^	void (*hi)(uint8_t* hex, size_t len, const char* fmt, ...);$/;"	m	struct:log_ctx
+i	log.h	/^	void (*i)(const char* fmt, ...);$/;"	m	struct:log_ctx
+len	parser.h	/^	uint8_t len;$/;"	m	struct:tag_t
+log_ctx	log.h	/^struct log_ctx {$/;"	s
+log_level	log.c	/^int log_level = L_ALL;$/;"	v
+mac_cmp	format.h	17;"	d
+mac_cmp_bcast	format.h	18;"	d
+mac_cmp_null	format.h	19;"	d
+mac_copy	format.h	21;"	d
+mac_copy_bcast	format.h	22;"	d
+mac_copy_null	format.h	23;"	d
+mac_t	format.h	/^typedef uint8_t mac_t[6];$/;"	t
+main	test.c	/^int main()$/;"	f
+name	parser.h	/^	char name[128];$/;"	m	struct:action_t
+next	parser.h	/^	struct action_t *next;$/;"	m	struct:action_t	typeref:struct:action_t::action_t
+next	parser.h	/^	struct tag_t *next;$/;"	m	struct:tag_t	typeref:struct:tag_t::tag_t
+no	parser.h	/^	uint32_t no;				\/\/ sequence number$/;"	m	struct:action_t
+oui_t	format.h	/^typedef uint8_t oui_t[3];$/;"	t
+tag	parser.h	/^	uint8_t tag;$/;"	m	struct:tag_t
+tag_t	parser.h	/^struct tag_t {$/;"	s
+tags	parser.h	/^	struct tag_t *tags;$/;"	m	struct:action_t	typeref:struct:action_t::tag_t
+version	parser.h	/^	uint32_t version;$/;"	m	struct:config_t
+xml_action_debug	parser.c	/^static void xml_action_debug(struct action_t *action) {$/;"	f	file:
+xml_action_parser	parser.c	/^static struct config_t* xml_action_parser(ezxml_t xml) {$/;"	f	file:
+xml_config	parser.c	/^struct config_operation xml_config = {$/;"	v	typeref:struct:config_operation
+xml_config_debug	parser.c	/^static void xml_config_debug(struct config_t* config) {$/;"	f	file:
+xml_config_load	parser.c	/^static struct config_t* xml_config_load(const char* filename) {$/;"	f	file:
+xml_config_parser	parser.c	/^static struct config_t* xml_config_parser(const char* filename, ezxml_t xml) {$/;"	f	file:
