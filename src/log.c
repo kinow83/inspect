@@ -59,11 +59,12 @@ static const char *LOG_STR[] = {
 	"DEBUG",
 };
 
-static void console_log(int lv, const char* fmt, va_list ap, uint8_t* hex, size_t len, const char *color) {
+static void console_log(int lv, const char *fmt, va_list ap, 
+						uint8_t *hex, size_t len, const char *color) {
 	struct tm t_now;
 	time_t now;
 	char strtime[256];
-	char buffer[512];
+	char buf[512];
 	FILE *fp;
 	const char *lv_str;
 	int n, i;
@@ -86,18 +87,19 @@ static void console_log(int lv, const char* fmt, va_list ap, uint8_t* hex, size_
 
 	if (log_level >= lv) {
 		strftime(strtime, sizeof(strtime), "%H:%M:%S", &t_now);
-		n = vsnprintf(buffer, sizeof(buffer), fmt, ap);
+		n = vsnprintf(buf, sizeof(buf), fmt, ap);
 
 		if (hex) {
 		    for (i=0; i<(int)len; i++) {
-				n += snprintf(buffer + n, sizeof(buffer) - n, " %02x", hex[i]);
+				n += snprintf(buf + n, sizeof(buf) - n, " %02x", hex[i]);
 			}
 		}
 
 		if (hex) {
-			fprintf(fp, "%s%s: %s: (len:%ld) %s\n", color, strtime, lv_str, len, buffer);
+			fprintf(fp, "%s%s: %s: (len:%ld) %s\n", 
+										color, strtime, lv_str, len, buf);
 		} else {
-			fprintf(fp, "%s%s: %s: %s\n", color, strtime, lv_str, buffer);
+			fprintf(fp, "%s%s: %s: %s\n", color, strtime, lv_str, buf);
 		}
 		fprintf(fp, "%s", VTC_RESET);
 
@@ -107,56 +109,56 @@ static void console_log(int lv, const char* fmt, va_list ap, uint8_t* hex, size_
 	}
 }
 
-static void console_fatal(const char* fmt, ...) {
+static void console_fatal(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_FATAL, fmt, ap, NULL, 0, VTC_YELLOW);
 	va_end(ap);
 }
 
-static void console_error(const char* fmt, ...) {
+static void console_error(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_ERROR, fmt, ap, NULL, 0, VTC_RED);
 	va_end(ap);
 }
 
-static void console_info(const char* fmt, ...) {
+static void console_info(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_INFO, fmt, ap, NULL, 0, VTC_GREEN);
 	va_end(ap);
 }
 
-static void console_debug(const char* fmt, ...) {
+static void console_debug(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_DEBUG, fmt, ap, NULL, 0, VTC_RESET);
 	va_end(ap);
 }
 
-static void console_hex_fatal(uint8_t* hex, size_t len, const char* fmt, ...) {
+static void console_hex_fatal(uint8_t *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_FATAL, fmt, ap, hex, len, VTC_YELLOW);
 	va_end(ap);
 }
 
-static void console_hex_error(uint8_t* hex, size_t len, const char* fmt, ...) {
+static void console_hex_error(uint8_t *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_ERROR, fmt, ap, hex, len, VTC_RED);
 	va_end(ap);
 }
 
-static void console_hex_info(uint8_t* hex, size_t len, const char* fmt, ...) {
+static void console_hex_info(uint8_t *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_INFO, fmt, ap, hex, len, VTC_GREEN);
 	va_end(ap);
 }
 
-static void console_hex_debug(uint8_t* hex, size_t len, const char* fmt, ...) {
+static void console_hex_debug(uint8_t *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_DEBUG, fmt, ap, hex, len, VTC_RESET);

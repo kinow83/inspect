@@ -2,6 +2,8 @@
 #ifndef _PARSER_
 #define _PARSER_
 
+#include <stdint.h>
+
 #define CUR_VERSION 0
 
 /*
@@ -17,56 +19,37 @@
     type name[size]; \
 	uint8_t name##_en;
 
-#define cv_enabled(name) (name##_en == 1)
+#define cv_enabled(name) \
+	({ name##_en == 1; })
 
-#define cv_enable(name) do { name##_en = 1; } while (0)
+#define cv_enable(name) \
+	do { name##_en = 1; } while (0)
 
-#define cv_disable(name) do { name##_en = 0; } while (0)
+#define cv_disable(name) \
+	do { name##_en = 0; } while (0)
 
-#define ezxml2int(xml, name, val) ({ \
-		ezxml_t e = ezxml_child((xml), (name)); \
-		if (e && e->txt) { \
-			(val) = atoi(e->txt); \
-		} \
-	})
-
-#define ezxml2chararr(xml, name, val) ({ \
-		ezxml_t e = ezxml_child((xml), (name)); \
-		if (e && e->txt) { \
-			SNP((val), "%s", e->txt); \
-		} \
-	})
-
-
-#define ezxml2cv(xml, name, cv) \
-	do { \
-		ezxml_t e = ezxml_child((xml), (name)); \
-		if (e && e->txt) { \
-			(cv) = atoi(e->ext); \
-			cv_enable((cv)); \
-		} \
-	} while (0)
-
+#define cv_disable(name) \
+	do { name##_en = 0; } while (0)
 
 /*
  * 802.11 Information Element.
  */
-struct tag_t {
+typedef struct tag_t {
 	uint8_t tag;
 	uint8_t len;
 	uint8_t *data;
 	struct tag_t *next;
-}
+} tag_t;
 
 /*
  * shooter or capture config.
  * support multi action.
  */
-struct action_t {
+typedef struct action_t {
 	uint32_t no;				// sequence number
 
 	uint8_t enable;
-	char name[128];
+	char *name;
 	uint8_t channel;
 	uint32_t dwell;
 
@@ -86,18 +69,25 @@ struct action_t {
 	struct tag_t *tags;
 
 	struct action_t *next;
-}
+} action_t;
 
-struct config_t  {
+typedef struct config_t  {
+	char *config_type;
 	uint32_t version;
-	struct action_t action;
-}
+	struct action_t *action;
+} config_t;
 
-struct config_operation {
-	struct config_t* (*config_load)(const char* filename);
-	void (*config_free)(struct config_t *);
-	void (*config_debug)(struct config_t *);
-};
+typedef struct config_operation_t {
+	struct config_t* (*load)(const char *);
+	void (*debug)(struct config_t *);
+} config_operation_t;
 
+typedef struct config_list_t {
+	struct config_operation_t entry;
+	struct config_list_t *next;
+} config_list_t;
+
+void free_config(config_t *);
+void register_config(const char *name, config_operation_t *config_op);
 
 #endif

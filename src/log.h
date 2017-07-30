@@ -12,15 +12,15 @@
 #define L_ALL   (L_DEBUG+1)
 
 struct log_ctx {
-	void (*f)(const char* fmt, ...);
-	void (*e)(const char* fmt, ...);
-	void (*i)(const char* fmt, ...);
-	void (*d)(const char* fmt, ...);
+	void (*f)(const char *fmt, ...);
+	void (*e)(const char *fmt, ...);
+	void (*i)(const char *fmt, ...);
+	void (*d)(const char *fmt, ...);
 
-	void (*hf)(uint8_t* hex, size_t len, const char* fmt, ...);
-	void (*he)(uint8_t* hex, size_t len, const char* fmt, ...);
-	void (*hi)(uint8_t* hex, size_t len, const char* fmt, ...);
-	void (*hd)(uint8_t* hex, size_t len, const char* fmt, ...);
+	void (*hf)(uint8_t *hex, size_t len, const char *fmt, ...);
+	void (*he)(uint8_t *hex, size_t len, const char *fmt, ...);
+	void (*hi)(uint8_t *hex, size_t len, const char *fmt, ...);
+	void (*hd)(uint8_t *hex, size_t len, const char *fmt, ...);
 };
 
 extern struct log_ctx L;
