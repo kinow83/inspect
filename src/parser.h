@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "types.h"
+#include "format.h"
 
 #define CUR_VERSION 0
 
@@ -100,7 +101,7 @@ void free_config(Config_t *config);
 void free_config_modules(Config_module_t *mod);
 Action_t *max_dwell_action(Config_t *config);
 void register_config_module(const char *, Config_operations_t *);
-void init_config_modules();
+void init_parser_modules(void);
 void debug_action(Action_t *action);
 void debug_config(Config_t *config);
 

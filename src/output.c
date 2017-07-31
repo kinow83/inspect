@@ -73,11 +73,11 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 
 
 
-extern void init_xml_output_module();
+extern void init_xml_output_module(void);
 //extern void init_socket_output_module();
 //extern void init_syslog_output_module();
 
-void init_output_modules()
+void init_output_modules(void)
 {
 	init_xml_output_module();
 //	init_socket_output_module();

@@ -320,11 +320,11 @@ Action_t *max_dwell_action(Config_t *config)
 
 
 
-extern void init_xml_config_module();
+extern void init_xml_config_module(void);
 
-void init_config_modules()
+void init_parser_modules(void)
 {
-	init_xml_config_module();
+	init_xml_parser_module();
 //	init_mysql_config();
 //	init_sqlite_config();
 }

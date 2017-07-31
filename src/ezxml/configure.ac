@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([libxmloutput], [1.0.0], [kinow83@gmail.com])
-AC_CONFIG_SRCDIR([xml_output.c])
+AC_INIT([ezxml], [1.0.0], [kinow83@gmail.com])
+AC_CONFIG_SRCDIR([ezxml.c])
 AC_CONFIG_HEADERS([config.h])
 AC_PREFIX_DEFAULT(/usr)
 
@@ -23,13 +23,16 @@ AC_PROG_LIBTOOL
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdlib.h string.h])
-
-#AC_CONFIG_MACRO_DIRS([m4])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_SIZE_T
 
 # Checks for library functions.
-
+AC_FUNC_MALLOC
+AC_FUNC_MMAP
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memmove memset munmap strchr strcspn strdup strspn strstr strtol])
 AC_CONFIG_FILES([Makefile])
+
 AC_OUTPUT

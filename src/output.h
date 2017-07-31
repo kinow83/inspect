@@ -21,6 +21,6 @@ void do_output(Action_t *, u8 *);
 void done_output(void);
 
 void register_output_module(const char *, Output_operations_t *);
-void init_output_modules(void *context);
+void init_output_modules(void);
 
 #endif

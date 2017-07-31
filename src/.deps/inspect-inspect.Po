@@ -1,4 +1,4 @@
-libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
+inspect-inspect.o: inspect.c /usr/include/stdc-predef.h \
  /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -28,12 +28,9 @@ libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
- /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
- /usr/include/x86_64-linux-gnu/bits/string2.h \
- /usr/include/x86_64-linux-gnu/bits/string3.h ../format.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h output.h parser.h \
  /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
- /usr/include/x86_64-linux-gnu/bits/wchar.h ../types.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h types.h \
  /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
  /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
@@ -41,12 +38,27 @@ libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
  /usr/include/linux/stddef.h \
  /usr/include/x86_64-linux-gnu/asm/posix_types.h \
  /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
- /usr/include/asm-generic/posix_types.h ../parser.h ../log.h ../alloc.h \
- ../output.h ../parser.h ../../lib/ezxml/ezxml.h /usr/include/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
- /usr/include/x86_64-linux-gnu/bits/stat.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl2.h
+ /usr/include/asm-generic/posix_types.h format.h /usr/include/string.h \
+ /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
+ /usr/include/x86_64-linux-gnu/bits/string2.h \
+ /usr/include/x86_64-linux-gnu/bits/string3.h match.h osdep/osdep.h \
+ /usr/include/netinet/in.h /usr/include/x86_64-linux-gnu/sys/socket.h \
+ /usr/include/x86_64-linux-gnu/sys/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/socket.h \
+ /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+ /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
+ /usr/include/x86_64-linux-gnu/asm/socket.h \
+ /usr/include/asm-generic/socket.h \
+ /usr/include/x86_64-linux-gnu/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h \
+ /usr/include/x86_64-linux-gnu/bits/socket2.h \
+ /usr/include/x86_64-linux-gnu/bits/in.h osdep/byteorder.h \
+ /usr/include/unistd.h /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h osdep/packed.h \
+ osdep/channel.h
 
 /usr/include/stdc-predef.h:
 
@@ -124,17 +136,9 @@ libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
 
 /usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
-/usr/include/string.h:
+output.h:
 
-/usr/include/xlocale.h:
-
-/usr/include/x86_64-linux-gnu/bits/string.h:
-
-/usr/include/x86_64-linux-gnu/bits/string2.h:
-
-/usr/include/x86_64-linux-gnu/bits/string3.h:
-
-../format.h:
+parser.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
 
@@ -142,7 +146,7 @@ libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
-../types.h:
+types.h:
 
 /usr/include/linux/types.h:
 
@@ -166,24 +170,62 @@ libxmloutput_la-xml_output.lo: xml_output.c /usr/include/stdc-predef.h \
 
 /usr/include/asm-generic/posix_types.h:
 
-../parser.h:
+format.h:
 
-../log.h:
+/usr/include/string.h:
 
-../alloc.h:
+/usr/include/xlocale.h:
 
-../output.h:
+/usr/include/x86_64-linux-gnu/bits/string.h:
 
-../parser.h:
+/usr/include/x86_64-linux-gnu/bits/string2.h:
 
-../../lib/ezxml/ezxml.h:
+/usr/include/x86_64-linux-gnu/bits/string3.h:
 
-/usr/include/fcntl.h:
+match.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+osdep/osdep.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
+/usr/include/netinet/in.h:
 
-/usr/include/x86_64-linux-gnu/bits/stat.h:
+/usr/include/x86_64-linux-gnu/sys/socket.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
+/usr/include/x86_64-linux-gnu/sys/uio.h:
+
+/usr/include/x86_64-linux-gnu/bits/uio.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket_type.h:
+
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
+
+/usr/include/x86_64-linux-gnu/asm/socket.h:
+
+/usr/include/asm-generic/socket.h:
+
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
+
+/usr/include/asm-generic/sockios.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
+/usr/include/x86_64-linux-gnu/bits/in.h:
+
+osdep/byteorder.h:
+
+/usr/include/unistd.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+
+/usr/include/x86_64-linux-gnu/bits/environments.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
+
+osdep/packed.h:
+
+osdep/channel.h:

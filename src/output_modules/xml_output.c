@@ -25,7 +25,7 @@ static void done_xml_output(void)
 	echo.d("done_xml_output");
 }
 
-void init_xml_output_module()
+void init_xml_output_module(void)
 {
 	Output_operations_t op = {
 			.init_output = init_xml_output,

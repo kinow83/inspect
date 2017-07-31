@@ -22,6 +22,6 @@ Config_t *do_match(Config_t *, u8 *, size_t, struct rx_info *);
 void done_match(void *resource);
 
 void register_match_module(const char *, Match_operations_t *);
-void init_match_modules();
+void init_match_modules(void);
 
 #endif

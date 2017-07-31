@@ -141,7 +141,7 @@ static void done_xml_parser()
 	echo.d("done_xml_parser");
 }
 
-void init_xml_config_module()
+void init_xml_parser_module()
 {
 	Config_operations_t op = {
 			.do_parser = do_xml_parser,
