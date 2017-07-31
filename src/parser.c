@@ -81,7 +81,7 @@ void free_config_modules(Config_module_t *mod)
 
 static Action_t *extract_max_action(Action_t **first)
 {
-	uint32_t max = 0;
+	u32 max = 0;
 	Action_t *tmp, *prev;
 
 	// check first action memory.
@@ -143,19 +143,24 @@ static void sort_actions(Action_t **action)
 /*
  * load config by module name.
  */
-Config_t *load_config(const char *config_name, const char *args)
+Config_t *do_parser(const char *config_name, char *args)
 {
 	Config_module_t *idx;
+	Config_operations_t *op;
 	Config_t *config;
 	Action_t *action;
 
 	idx = ConfigModules;
 	while (idx) {
 		if (!strcasecmp(idx->config_name, config_name)) {
-			if (!idx->load) {
+			op = &idx->op;
+			if (!op->do_parser) {
 				return NULL;
 			}
-			config = idx->load(args, idx->context);
+			config = op->do_parser(args);
+			if (!config) {
+				return NULL;
+			}
 
 			sort_actions(&config->action);
 
@@ -164,15 +169,36 @@ Config_t *load_config(const char *config_name, const char *args)
 			while (action) {
 				action->config = config;
 			}
-
-			debug_config(config);
 			return config;
 		}
+		idx = idx->next;
 	}
 	return NULL;
 }
 
-void register_config_module(const char *config_name, Load_func_t load, void *context)
+void init_parser(void)
+{
+	Config_module_t *idx;
+
+	idx = ConfigModules;
+	while (idx) {
+		idx->op.init_parser();
+		idx = idx->next;
+	}
+}
+
+void done_parser(void)
+{
+	Config_module_t *idx;
+
+	idx = ConfigModules;
+	while (idx) {
+		idx->op.done_parser();
+		idx = idx->next;
+	}
+}
+
+void register_config_module(const char *config_name, Config_operations_t *op)
 {
 	Config_module_t *idx;
 
@@ -180,8 +206,9 @@ void register_config_module(const char *config_name, Load_func_t load, void *con
 	if (!idx) {
 		ConfigModules = alloc1(Config_module_t);
 		ConfigModules->config_name = strdup(config_name);
-		ConfigModules->load = load;
-		ConfigModules->context = context;
+		ConfigModules->op.init_parser = op->init_parser;
+		ConfigModules->op.do_parser = op->do_parser;
+		ConfigModules->op.done_parser = op->done_parser;
 	}
 	else {
 		while (idx->next) {
@@ -193,8 +220,9 @@ void register_config_module(const char *config_name, Load_func_t load, void *con
 
 		idx->next = alloc1(Config_module_t);
 		idx->config_name = strdup(config_name);
-		idx->load = load;
-		idx->context = context;
+		idx->op.init_parser = op->init_parser;
+		idx->op.do_parser = op->do_parser;
+		idx->op.done_parser = op->done_parser;
 	}
 }
 
@@ -265,7 +293,7 @@ void debug_config(Config_t *config)
 
 Action_t *max_dwell_action(Config_t *config)
 {
-	uint32_t max = 0;
+	u32 max = 0;
 	Action_t *action;
 	if (!config) {
 		return NULL;

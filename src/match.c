@@ -5,22 +5,41 @@
 #include "log.h"
 #include "alloc.h"
 #include "match.h"
-#include "osdep/osdep.h"
 
 Match_module_t *MatchModules;
 
 
+void init_match(void *resource)
+{
+	Match_module_t *idx;
+
+	idx = MatchModules;
+	while (idx) {
+		idx->op.init_match(resource);
+	}
+}
+
+void done_match(void *resource)
+{
+	Match_module_t *idx;
+
+	idx = MatchModules;
+	while (idx) {
+		idx->op.done_match(resource);
+	}
+}
+
 /*
  * Fast matching for all match modules.
  */
-Config_t *do_match(Config_t *config, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
+Config_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_info *ri)
 {
 	Match_module_t *idx;
 	Config_t *match;
 
 	idx = MatchModules;
 	while (idx) {
-		match = idx->match(config, h80211, h80211len, ri);
+		match = idx->op.do_match(config, h80211, h80211len, ri);
 		// return matched config.
 		if (match) {
 			return match;
@@ -29,7 +48,7 @@ Config_t *do_match(Config_t *config, uint8_t *h80211, size_t h80211len, struct r
 	return NULL;
 }
 
-void register_match_module(const char *match_name, Match_func_t *match)
+void register_match_module(const char *match_name, Match_operations_t *op)
 {
 	Match_module_t *idx;
 
@@ -37,7 +56,9 @@ void register_match_module(const char *match_name, Match_func_t *match)
 	if (!idx) {
 		MatchModules = alloc1(Match_module_t);
 		MatchModules->match_name = strdup(match_name);
-		MatchModules->match = match;
+		MatchModules->op.init_match = op->init_match;
+		MatchModules->op.do_match = op->do_match;
+		MatchModules->op.done_match = op->done_match;
 	}
 	else {
 		while (idx->next) {
@@ -49,7 +70,9 @@ void register_match_module(const char *match_name, Match_func_t *match)
 
 		idx->next = alloc1(Match_module_t);
 		idx->match_name = strdup(match_name);
-		idx->match = match;
+		idx->op.init_match = op->init_match;
+		idx->op.do_match = op->do_match;
+		idx->op.done_match = op->done_match;
 	}
 }
 

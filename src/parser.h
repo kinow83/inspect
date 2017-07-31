@@ -2,6 +2,7 @@
 #define _PARSER_
 
 #include <stdint.h>
+#include "types.h"
 
 #define CUR_VERSION 0
 
@@ -10,13 +11,13 @@
  */
 #define cv_def(name, type) \
     type name; \
-	uint8_t name##_en;
+	u8 name##_en;
 /*
  * cv_arr_def: Config Value Array Define.
  */
 #define cv_arr_def(name, type, size) \
     type name[size]; \
-	uint8_t name##_en;
+	u8 name##_en;
 
 #define cv_enabled(name) \
 	({ name##_en == 1; })
@@ -34,9 +35,9 @@
  * 802.11 Information Element.
  */
 typedef struct Tag_t {
-	uint8_t tag;
-	uint8_t len;
-	uint8_t *data;
+	u8 tag;
+	u8 len;
+	u8 *data;
 	struct Tag_t *next;
 } Tag_t;
 
@@ -49,19 +50,17 @@ typedef struct Config_t Config_t;
  */
 typedef struct Action_t {
 	Config_t *config;
-	uint32_t no;				// sequence number
-
-	uint8_t enable;
+	u32 no;				// sequence number
+	u8 enable;
 	char *action_name;
-	uint8_t channel;
-	uint32_t dwell;
-
-	cv_def(version, uint8_t);   // 802.11 version
-	cv_def(type, uint8_t);      // frame type
-	cv_def(subtype, uint8_t);   // frame subtype
-	cv_def(tods, uint8_t);      // tods
-	cv_def(fromds, uint8_t);    // fromds
-	cv_def(addr_count, uint8_t);// mac address count
+	u8 channel;
+	u32 dwell;
+	cv_def(version, u8);   // 802.11 version
+	cv_def(type, u8);      // frame type
+	cv_def(subtype, u8);   // frame subtype
+	cv_def(tods, u8);      // tods
+	cv_def(fromds, u8);    // fromds
+	cv_def(addr_count, u8);// mac address count
 	cv_def(addr1, mac_t);       // mac address1
 	cv_def(addr2, mac_t);       // mac address2
 	cv_def(addr3, mac_t);       // mac address3
@@ -69,37 +68,39 @@ typedef struct Action_t {
 	cv_def(ap_addr, mac_t);     // AP mac address (aka. BSSID)
 	cv_def(st_addr, mac_t);		// ST mac address (station)
 	cv_def(any_addr, mac_t);	// ANY mac address (any address capture)
-
 	struct Tag_t *tags;
-
 	struct Action_t *next;
 } Action_t;
 
 typedef struct Config_t  {
-	uint32_t version;  // config version
+	u32 version;  // config version
 	struct Action_t *action;
 } Config_t;
 
-typedef Config_t* (*Load_func_t)(const char *, void *);
+typedef struct Config_operations_t {
+	void (*init_parser)(void);
+	Config_t* (*do_parser)(char *);
+	void (*done_parser)(void);
+} Config_operations_t;
 
 typedef struct Config_module_t {
-	char *config_name;                    // config module name.
-	Load_func_t load;                     // load config from file.
-	void *context;
+	char *config_name;
+	Config_operations_t op;
 	struct Config_module_t *next;
 } Config_module_t;
 
+
+void init_parser(void);
+Config_t *do_parser(const char *config_name, char *args);
+void done_parser(void);
 
 void free_tags(Tag_t *tag);
 void free_actions(Action_t *action);
 void free_config(Config_t *config);
 void free_config_modules(Config_module_t *mod);
-
 Action_t *max_dwell_action(Config_t *config);
-Config_t *load_config(const char *config_name, const char *args);
-void register_config_module(const char *, Load_func_t, void *);
+void register_config_module(const char *, Config_operations_t *);
 void init_config_modules();
-
 void debug_action(Action_t *action);
 void debug_config(Config_t *config);
 

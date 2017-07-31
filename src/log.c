@@ -61,7 +61,7 @@ static const char *LOG_STR[] = {
 };
 
 static void console_log(int lv, const char *fmt, va_list ap, 
-						uint8_t *hex, size_t len, const char *color) {
+						u8 *hex, size_t len, const char *color) {
 	struct tm t_now;
 	time_t now;
 	char strtime[256];
@@ -138,28 +138,28 @@ static void console_debug(const char *fmt, ...) {
 	va_end(ap);
 }
 
-static void console_hex_fatal(uint8_t *hex, size_t len, const char *fmt, ...) {
+static void console_hex_fatal(u8 *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_FATAL, fmt, ap, hex, len, VTC_YELLOW);
 	va_end(ap);
 }
 
-static void console_hex_error(uint8_t *hex, size_t len, const char *fmt, ...) {
+static void console_hex_error(u8 *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_ERROR, fmt, ap, hex, len, VTC_RED);
 	va_end(ap);
 }
 
-static void console_hex_info(uint8_t *hex, size_t len, const char *fmt, ...) {
+static void console_hex_info(u8 *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_INFO, fmt, ap, hex, len, VTC_GREEN);
 	va_end(ap);
 }
 
-static void console_hex_debug(uint8_t *hex, size_t len, const char *fmt, ...) {
+static void console_hex_debug(u8 *hex, size_t len, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	console_log(L_DEBUG, fmt, ap, hex, len, VTC_RESET);
