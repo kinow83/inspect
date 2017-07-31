@@ -1,0 +1,40 @@
+<config>
+	<version>0</version>
+
+	<action>
+		<no>3</no>
+		<enable>1</enable>
+		<action_name>test3</action_name>
+		<dwell>300</dwell>
+		<channel>3</channel>
+	</action>
+
+
+	<action>
+		<no>1</no>
+		<enable>1</enable>
+		<action_name>test1</action_name>
+		<dwell>100</dwell>
+		<channel>1</channel>
+	</action>
+
+	<action>
+		<no>4</no>
+		<enable>1</enable>
+		<action_name>test4</action_name>
+		<dwell>400</dwell>
+		<channel>4</channel>
+	</action>
+
+
+	<action>
+		<no>2</no>
+		<enable>1</enable>
+		<action_name>test2</action_name>
+		<dwell>200</dwell>
+		<channel>2</channel>
+	</action>
+
+
+
+</config>

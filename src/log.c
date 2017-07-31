@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "log.h"
 
 /*

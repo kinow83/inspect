@@ -3,7 +3,7 @@
 #define _LOG_H_
 
 #include <stdint.h>
-#include <stdarg.h>
+#include <stdlib.h>
 
 #define L_FATAL 0
 #define L_ERROR 1
@@ -23,7 +23,6 @@ struct log_ctx {
 	void (*hd)(uint8_t *hex, size_t len, const char *fmt, ...);
 };
 
-extern struct log_ctx L;
 extern int log_level;
 extern struct log_ctx echo;
 

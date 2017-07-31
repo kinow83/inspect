@@ -1,4 +1,3 @@
-
 #ifndef _PARSER_
 #define _PARSER_
 
@@ -34,25 +33,30 @@
 /*
  * 802.11 Information Element.
  */
-typedef struct tag_t {
+typedef struct Tag_t {
 	uint8_t tag;
 	uint8_t len;
 	uint8_t *data;
-	struct tag_t *next;
-} tag_t;
+	struct Tag_t *next;
+} Tag_t;
+
+// predefine.
+typedef struct Config_t Config_t;
 
 /*
  * shooter or capture config.
  * support multi action.
  */
-typedef struct action_t {
+typedef struct Action_t {
+	Config_t *config;
 	uint32_t no;				// sequence number
 
 	uint8_t enable;
-	char *name;
+	char *action_name;
 	uint8_t channel;
 	uint32_t dwell;
 
+	cv_def(version, uint8_t);   // 802.11 version
 	cv_def(type, uint8_t);      // frame type
 	cv_def(subtype, uint8_t);   // frame subtype
 	cv_def(tods, uint8_t);      // tods
@@ -66,28 +70,37 @@ typedef struct action_t {
 	cv_def(st_addr, mac_t);		// ST mac address (station)
 	cv_def(any_addr, mac_t);	// ANY mac address (any address capture)
 
-	struct tag_t *tags;
+	struct Tag_t *tags;
 
-	struct action_t *next;
-} action_t;
+	struct Action_t *next;
+} Action_t;
 
-typedef struct config_t  {
-	char *config_type;
-	uint32_t version;
-	struct action_t *action;
-} config_t;
+typedef struct Config_t  {
+	uint32_t version;  // config version
+	struct Action_t *action;
+} Config_t;
 
-typedef struct config_operation_t {
-	struct config_t* (*load)(const char *);
-	void (*debug)(struct config_t *);
-} config_operation_t;
+typedef Config_t* (*Load_func_t)(const char *, void *);
 
-typedef struct config_list_t {
-	struct config_operation_t entry;
-	struct config_list_t *next;
-} config_list_t;
+typedef struct Config_module_t {
+	char *config_name;                    // config module name.
+	Load_func_t load;                     // load config from file.
+	void *context;
+	struct Config_module_t *next;
+} Config_module_t;
 
-void free_config(config_t *);
-void register_config(const char *name, config_operation_t *config_op);
+
+void free_tags(Tag_t *tag);
+void free_actions(Action_t *action);
+void free_config(Config_t *config);
+void free_config_modules(Config_module_t *mod);
+
+Action_t *max_dwell_action(Config_t *config);
+Config_t *load_config(const char *config_name, const char *args);
+void register_config_module(const char *, Load_func_t, void *);
+void init_config_modules();
+
+void debug_action(Action_t *action);
+void debug_config(Config_t *config);
 
 #endif
