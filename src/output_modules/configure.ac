@@ -2,10 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([libxmloutput], [1.0.0], [kinow83@gmail.com])
-AC_CONFIG_SRCDIR([xml_output.c])
-AC_CONFIG_HEADERS([config.h])
-AC_PREFIX_DEFAULT(/usr)
+AC_INIT([liboutput], [1.0.0], [kinow83@gmail.com])
+#AC_CONFIG_SRCDIR([inspect.c])
+#AC_CONFIG_HEADERS([config.h])
+
+AC_PREFIX_DEFAULT(/usr/inspect)
 
 AM_INIT_AUTOMAKE([foreign])
 
@@ -24,8 +25,6 @@ AC_PROG_LIBTOOL
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
-
-#AC_CONFIG_MACRO_DIRS([m4])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

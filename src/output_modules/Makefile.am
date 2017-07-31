@@ -2,16 +2,11 @@
 #
 # Copyright 2017 Kang seok ju <kinow83@gmail.com>
 #
+AUTOMAKE_OPTIONS = foreign no-dependencies
 
-AUTOMAKE_OPTIONS = foreign
+noinst_LIBRARIES = liboutput.a
 
-AM_CPPFLAGS = -I ../ -I ../../lib/
+liboutput_a_SOURCES = xml_output.c
 
-lib_LTLIBRARIES = libxmloutput.la
+liboutput_CFLAGS = @INCLUDES@
 
-libxmloutput_la_SOURCES = xml_output.c
-
-libxmloutput_la_CFLAGS = -D_REENTRANT
-libxmloutput_la_LDFLAGS = -version-info 1:0:0
-
-LDADD = 

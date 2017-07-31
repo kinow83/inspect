@@ -3,10 +3,9 @@
 
 AC_PREREQ([2.69])
 AC_INIT([inspect], [1.0.0], [kinow83@gmail.com])
-AC_CONFIG_SRCDIR([inspect.c])
 AC_CONFIG_HEADERS([config.h])
 
-AC_PREFIX_DEFAULT(/usr)
+AC_PREFIX_DEFAULT(/usr/inspect)
 
 AM_INIT_AUTOMAKE([foreign])
 
@@ -18,15 +17,13 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-#AC_PROG_RANLIB
+AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
-
-AC_CONFIG_MACRO_DIRS([m4])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

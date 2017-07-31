@@ -32,17 +32,17 @@ void done_match(void *resource)
 /*
  * Fast matching for all match modules.
  */
-Config_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_info *ri)
+Action_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_info *ri)
 {
 	Match_module_t *idx;
-	Config_t *match;
+	Action_t *matched;
 
 	idx = MatchModules;
 	while (idx) {
-		match = idx->op.do_match(config, h80211, h80211len, ri);
+		matched = idx->op.do_match(config, h80211, h80211len, ri);
 		// return matched config.
-		if (match) {
-			return match;
+		if (matched) {
+			return matched;
 		}
 	}
 	return NULL;

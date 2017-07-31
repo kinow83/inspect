@@ -6,7 +6,7 @@
 
 typedef struct Match_operations_t {
 	void (*init_match)(void *);
-	Action_t (*do_match)(Config_t *, u8 *, size_t, struct rx_info *);
+	Action_t* (*do_match)(Config_t *, u8 *, size_t, struct rx_info *);
 	void (*done_match)(void *);
 } Match_operations_t;
 
@@ -18,7 +18,7 @@ typedef struct Match_module_t {
 
 
 void init_match(void *resource);
-Config_t *do_match(Config_t *, u8 *, size_t, struct rx_info *);
+Action_t *do_match(Config_t *, u8 *, size_t, struct rx_info *);
 void done_match(void *resource);
 
 void register_match_module(const char *, Match_operations_t *);
