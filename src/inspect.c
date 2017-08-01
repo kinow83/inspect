@@ -40,20 +40,19 @@ static void* do_capture(void *arg)
 
 }
 
-static void run_shooter(bool thread)
+static pthread_t run_threadable(Config_t *config, bool thread, void *(*fp)(void *))
 {
-	pthread_t pid;
+	pthread_t pid = 0;
+
 	if (thread) {
-		if (pthread_create(&pid, NULL, (void*)do_shooter, &capture_g) != 0) {
-
+		if (pthread_create(&pid, NULL, fp, config) != 0) {
+			echo.f("Error pthread_create(): %s", strerror(errno));
+		}
 	}
-}
-
-static void run_capture(bool thread)
-{
-	if (thread) {
-
+	else {
+		fp(config);
 	}
+	return pid;
 }
 
 void usage(int argc, char **argv)
