@@ -13,35 +13,35 @@ static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
 	Action_t *action;
 	ezxml_t e;
 
-	action = alloc1(Action_t);
+	action = alloc_sizeof(Action_t);
 
-	// enable and check mandatory config.
+	// enable and check mandatory action.
 	e = ezxml_child(xml, "enable");
 	if (e && e->txt) {
 		action->enable = atoi(e->txt);
 	} else {
-		echo.f("empty 'enable' config in %s", filename);
+		echo.f("empty 'enable' of action in %s", filename);
 	}
-	// action_name and check mandatory config.
-	e = ezxml_child(xml, "action_name");
+	// action name and check mandatory action.
+	e = ezxml_child(xml, "name");
 	if (e && e->txt) {
-		action->action_name = strdup(e->txt);
+		action->name = strdup(e->txt);
 	} else {
-		echo.f("empty 'action_name' config in %s", filename);
+		echo.f("empty 'name' of action in %s", filename);
 	}
-	// dwell and check mandatory config.
+	// dwell and check mandatory action.
 	e = ezxml_child(xml, "dwell");
 	if (e && e->txt) {
 		action->dwell = atoi(e->txt);
 	} else {
-		echo.f("empty 'dwell' config in %s", filename);
+		echo.f("empty 'dwell' of action in %s", filename);
 	}
-	// channel and check mandatory config.
+	// channel and check mandatory action.
 	e = ezxml_child(xml, "channel");
 	if (e && e->txt) {
 		action->channel = (u8)atoi(e->txt);
 	} else {
-		echo.f("empty 'channel' config in %s", filename);
+		echo.f("empty 'channel' of action in %s", filename);
 	}
 
 	e = ezxml_child(xml, "no");
@@ -78,17 +78,24 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
 	Config_t *config;
 	Action_t *action;
 
-	config = alloc1(Config_t);
+	config = alloc_sizeof(Config_t);
 
 	e = ezxml_child(xml, "version");
 	if (e && e->txt) {
 		version = (u32)atoi(e->txt);
 	}
-
 	if (version > CUR_VERSION) {
 		free_config(config);
 		echo.f("version mismatch current %d in %s", CUR_VERSION, filename);
 	}
+	config->version = version;
+
+	e = ezxml_child(xml, "name");
+	if (!e || !e->txt) {
+		free_config(config);
+		echo.f("empty 'name'of config in %s", CUR_VERSION, filename);
+	}
+	config->name = strdup(e->txt);
 
 	// multi action in config.
 	for (e = ezxml_child(xml, "action"); e; e = e->next) {
@@ -115,10 +122,11 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
  * name: xml_config_load
  * desc: XML 설정 파일을 불러온다.
  */
-static Config_t *do_xml_parser(const char *filename, void *context)
+static Config_t *do_xml_parser(char *args)
 {
 	Config_t *config;
 	ezxml_t xml;
+	char *filename = args;
 	
 	xml  = ezxml_parse_file(filename);
 	if (!xml) {
@@ -131,17 +139,17 @@ static Config_t *do_xml_parser(const char *filename, void *context)
 	return config;
 }
 
-static void init_xml_parser()
+static void init_xml_parser(void)
 {
 	echo.d("init_xml_parser");
 }
 
-static void done_xml_parser()
+static void done_xml_parser(void)
 {
 	echo.d("done_xml_parser");
 }
 
-void init_xml_parser_module()
+void setup_xml_parser_module(void)
 {
 	Config_operations_t op = {
 			.do_parser = do_xml_parser,
@@ -149,6 +157,6 @@ void init_xml_parser_module()
 			.done_parser = done_xml_parser,
 	};
 
-	register_config_module("xml", &op);
+	register_parser_module("xml", &op);
 }
 

@@ -8,5 +8,6 @@ noinst_LIBRARIES = liboutput.a
 
 liboutput_a_SOURCES = xml_output.c
 
-liboutput_CFLAGS = @INCLUDES@
+#LDADD = ../ezxml/libezxml.a
 
+INCLUDES = -I../

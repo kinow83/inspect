@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "format.h"
-#include "parser.h"
+#include "match.h"
 #include "log.h"
 #include "alloc.h"
 
@@ -42,7 +42,7 @@ static void done_h80211_match(void *resource)
 	echo.d("done_h80211_match");
 }
 
-void init_h80211_match_module()
+void setup_h80211_match_module()
 {
 	Match_operations_t op = {
 			.init_match = init_h80211_match,

@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "types.h"
 #include "format.h"
-
-#define CUR_VERSION 0
+#include "version.h"
+#include "osdep/osdep.h"
 
 /*
  * cv_def: Config Value Define.
@@ -53,7 +53,7 @@ typedef struct Action_t {
 	Config_t *config;
 	u32 no;				// sequence number
 	u8 enable;
-	char *action_name;
+	char *name;
 	u8 channel;
 	u32 dwell;
 	cv_def(version, u8);   // 802.11 version
@@ -75,6 +75,10 @@ typedef struct Action_t {
 
 typedef struct Config_t  {
 	u32 version;  // config version
+	char *name;
+	u32 extra_dwell;
+	struct wif *capture_wif;
+	struct wif *shooter_wif;
 	struct Action_t *action;
 } Config_t;
 
@@ -94,14 +98,14 @@ typedef struct Config_module_t {
 void init_parser(void);
 Config_t *do_parser(const char *config_name, char *args);
 void done_parser(void);
+void register_parser_module(const char *, Config_operations_t *);
+void setup_parser_modules(void);
 
 void free_tags(Tag_t *tag);
 void free_actions(Action_t *action);
 void free_config(Config_t *config);
 void free_config_modules(Config_module_t *mod);
 Action_t *max_dwell_action(Config_t *config);
-void register_config_module(const char *, Config_operations_t *);
-void init_parser_modules(void);
 void debug_action(Action_t *action);
 void debug_config(Config_t *config);
 

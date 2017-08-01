@@ -1,10 +1,11 @@
 <config>
 	<version>0</version>
+	<name>test config</name>
 
 	<action>
 		<no>3</no>
 		<enable>1</enable>
-		<action_name>test3</action_name>
+		<name>test3</name>
 		<dwell>300</dwell>
 		<channel>3</channel>
 	</action>
@@ -13,7 +14,7 @@
 	<action>
 		<no>1</no>
 		<enable>1</enable>
-		<action_name>test1</action_name>
+		<name>test1</name>
 		<dwell>100</dwell>
 		<channel>1</channel>
 	</action>
@@ -21,7 +22,7 @@
 	<action>
 		<no>4</no>
 		<enable>1</enable>
-		<action_name>test4</action_name>
+		<name>test4</name>
 		<dwell>400</dwell>
 		<channel>4</channel>
 	</action>
@@ -30,7 +31,7 @@
 	<action>
 		<no>2</no>
 		<enable>1</enable>
-		<action_name>test2</action_name>
+		<name>test2</name>
 		<dwell>200</dwell>
 		<channel>2</channel>
 	</action>

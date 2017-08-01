@@ -22,7 +22,7 @@ int main()
 
 	printf("-------------\n");
 
-	int *pi = alloc1(int);
+	int *pi = alloc_sizeof(int);
 	echo.i("%p", pi);
 	free(pi);
 

@@ -37,8 +37,8 @@ void free_actions(Action_t *action)
 	if (!action) return;
 	while (action) {
 		tmp = action->next;
-		if (action->action_name) {
-			free(action->action_name);
+		if (action->name) {
+			free(action->name);
 		}
 		free(action);
 
@@ -198,38 +198,39 @@ void done_parser(void)
 	}
 }
 
-void register_config_module(const char *config_name, Config_operations_t *op)
+void register_parser_module(const char *parser_name, Config_operations_t *op)
 {
 	Config_module_t *idx;
 
 	idx = ConfigModules;
 	if (!idx) {
-		ConfigModules = alloc1(Config_module_t);
-		ConfigModules->config_name = strdup(config_name);
+		ConfigModules = alloc_sizeof(Config_module_t);
+		ConfigModules->config_name = strdup(parser_name);
 		ConfigModules->op.init_parser = op->init_parser;
 		ConfigModules->op.do_parser = op->do_parser;
 		ConfigModules->op.done_parser = op->done_parser;
 	}
 	else {
 		while (idx->next) {
-			if (!strcasecmp(idx->config_name, config_name)) {
-				echo.f("Duplicate config module. %s", config_name);
+			if (!strcasecmp(idx->config_name, parser_name)) {
+				echo.f("Duplicate config module. %s", parser_name);
 			}
 			idx = idx->next;
 		}
 
-		idx->next = alloc1(Config_module_t);
-		idx->config_name = strdup(config_name);
+		idx->next = alloc_sizeof(Config_module_t);
+		idx->config_name = strdup(parser_name);
 		idx->op.init_parser = op->init_parser;
 		idx->op.do_parser = op->do_parser;
 		idx->op.done_parser = op->done_parser;
 	}
+	echo.d("register parser module [%s]", parser_name);
 }
 
 void debug_action(Action_t *action)
 {
 	echo.i("no = %d", action->no);
-	echo.i("action_name = %s", action->action_name);
+	echo.i("action = %s", action->name);
 	echo.i("channel = %d", action->channel);
 	echo.i("dwell = %d", action->dwell);
 
@@ -320,11 +321,11 @@ Action_t *max_dwell_action(Config_t *config)
 
 
 
-extern void init_xml_config_module(void);
+extern void setup_xml_parser_module(void);
 
-void init_parser_modules(void)
+void setup_parser_modules(void)
 {
-	init_xml_parser_module();
+	setup_xml_parser_module();
 //	init_mysql_config();
 //	init_sqlite_config();
 }

@@ -3,9 +3,12 @@
 
 #include <string.h>
 
-#define alloc1(type) \
-	(type *)_calloc_1_(sizeof(type)) 
+#define alloc_sizeof(type) \
+	(type *)_calloc_sizeof_(sizeof(type))
 
-void *_calloc_1_(size_t size);
+#define alloc_type(type, size) \
+	(type *)_calloc_sizeof_(size)
+
+void *_calloc_sizeof_(size_t size);
 
 #endif

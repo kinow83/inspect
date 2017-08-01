@@ -54,7 +54,7 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 
 	idx = MatchModules;
 	if (!idx) {
-		MatchModules = alloc1(Match_module_t);
+		MatchModules = alloc_sizeof(Match_module_t);
 		MatchModules->match_name = strdup(match_name);
 		MatchModules->op.init_match = op->init_match;
 		MatchModules->op.do_match = op->do_match;
@@ -68,19 +68,20 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 			idx = idx->next;
 		}
 
-		idx->next = alloc1(Match_module_t);
+		idx->next = alloc_sizeof(Match_module_t);
 		idx->match_name = strdup(match_name);
 		idx->op.init_match = op->init_match;
 		idx->op.do_match = op->do_match;
 		idx->op.done_match = op->done_match;
 	}
+	echo.d("register match module [%s]", match_name);
 }
 
 
 
-extern void init_h80211_match_module();
+extern void setup_h80211_match_module();
 
-void init_match_modules()
+void setup_match_modules()
 {
-	init_h80211_match_module();
+	setup_h80211_match_module();
 }

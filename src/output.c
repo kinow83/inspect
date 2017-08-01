@@ -32,13 +32,13 @@ void done_output(void)
 /*
  * run all output in output-modules
  */
-void do_output(Action_t *action, u8 *output_data)
+void do_output(Action_t *action, Output_data_t *data)
 {
 	Output_module_t *idx;
 
 	idx = OutputModules;
 	while (idx) {
-		idx->op.do_output(action, output_data);
+		idx->op.do_output(action, data);
 	}
 }
 
@@ -48,7 +48,7 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 
 	idx = OutputModules;
 	if (!idx) {
-		OutputModules = alloc1(Output_module_t);
+		OutputModules = alloc_sizeof(Output_module_t);
 		OutputModules->output_name = strdup(output_name);
 		OutputModules->op.init_output = op->init_output;
 		OutputModules->op.do_output = op->do_output;
@@ -62,25 +62,26 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 			idx = idx->next;
 		}
 
-		idx->next = alloc1(Output_module_t);
+		idx->next = alloc_sizeof(Output_module_t);
 		idx->output_name = strdup(output_name);
 		idx->op.init_output = op->init_output;
 		idx->op.do_output = op->do_output;
 		idx->op.done_output = op->done_output;
 	}
+	echo.d("register output module [%s]", output_name);
 }
 
 
 
 
-extern void init_xml_output_module(void);
-//extern void init_socket_output_module();
-//extern void init_syslog_output_module();
+extern void setup_xml_output_module(void);
+//extern void setup_socket_output_module();
+//extern void setup_syslog_output_module();
 
-void init_output_modules(void)
+void setup_output_modules(void)
 {
-	init_xml_output_module();
-//	init_socket_output_module();
-//	init_syslog_output_module();
+	setup_xml_output_module();
+//	setup_socket_output_module();
+//	setup_syslog_output_module();
 }
 
