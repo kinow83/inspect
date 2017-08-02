@@ -6,26 +6,59 @@
 #include "alloc.h"
 #include "match.h"
 
-Match_module_t *MatchModules;
+static Match_module_t *MatchModules;
 
 
-void init_match(void *resource)
+void init_match_modules(Module_option_t **match_opts)
 {
 	Match_module_t *idx;
+	Module_option_t *opt;
+	int i = 0;
 
-	idx = MatchModules;
-	while (idx) {
-		idx->op.init_match(resource);
+	if (!match_opts) return;
+
+	while (match_opts[i]) {
+		opt = match_opts[i];
+		idx = MatchModules;
+
+		while (idx) {
+			if (!strcasecmp(opt->name, idx->match_name)) {
+				idx->op.init_match(opt->options);
+				idx->enable = true;
+				break;
+			}
+			idx = idx->next;
+		}
+		i++;
 	}
 }
 
-void done_match(void *resource)
+void finish_match_modules(void)
 {
 	Match_module_t *idx;
 
 	idx = MatchModules;
 	while (idx) {
-		idx->op.done_match(resource);
+		idx->op.finish_match();
+		idx = idx->next;
+	}
+}
+
+void free_match_moduels(Match_module_t *mod)
+{
+	Match_module_t *idx;
+
+	if (!mod) {
+		mod = MatchModules;
+	}
+	while (mod) {
+		idx = mod->next;
+		if (mod->match_name) {
+			free(mod->match_name);
+		}
+		free(mod);
+
+		mod = idx;
 	}
 }
 
@@ -55,10 +88,11 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 	idx = MatchModules;
 	if (!idx) {
 		MatchModules = alloc_sizeof(Match_module_t);
+		MatchModules->enable = false;
 		MatchModules->match_name = strdup(match_name);
 		MatchModules->op.init_match = op->init_match;
 		MatchModules->op.do_match = op->do_match;
-		MatchModules->op.done_match = op->done_match;
+		MatchModules->op.finish_match = op->finish_match;
 	}
 	else {
 		while (idx->next) {
@@ -69,10 +103,11 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 		}
 
 		idx->next = alloc_sizeof(Match_module_t);
+		idx->enable = false;
 		idx->match_name = strdup(match_name);
 		idx->op.init_match = op->init_match;
 		idx->op.do_match = op->do_match;
-		idx->op.done_match = op->done_match;
+		idx->op.finish_match = op->finish_match;
 	}
 	echo.d("register match module [%s]", match_name);
 }

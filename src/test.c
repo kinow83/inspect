@@ -34,5 +34,5 @@ int main()
 	echo.i("%p", config);
 
 	free_config(config);
-	free_config_modules(NULL);
+	free_parser_modules(NULL);
 }

@@ -50,9 +50,9 @@ static void do_xml_output(Action_t *action, Output_data_t *data)
 
 }
 
-static void init_xml_output(void)
+static void init_xml_output(char *options)
 {
-	echo.d("init_xml_output");
+	echo.d("init_xml_output: %s", options);
 }
 
 static void done_xml_output(void)
@@ -64,7 +64,7 @@ void setup_xml_output_module(void)
 {
 	Output_operations_t op = {
 			.init_output = init_xml_output,
-			.do_output = do_xml_output,
+			.do_output   = do_xml_output,
 			.done_output = done_xml_output,
 	};
 

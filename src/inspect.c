@@ -20,14 +20,36 @@
 #include "parser.h"
 #include "osdep/osdep.h"
 
+
 int do_exit;
 
 
-static void init_inspect_modules()
+static void setup_modules(void)
 {
 	setup_parser_modules();
 	setup_match_modules();
 	setup_output_modules();
+}
+
+static void init_modules(Module_option_list_t *opts)
+{
+	init_parser_modules(opts->parser);
+	init_match_modules(opts->match);
+	init_output_modules(opts->output);
+}
+
+static void finish_modules()
+{
+	finish_parser_modules();
+	finish_match_modules();
+	finish_output_modules();
+}
+
+static void free_modules()
+{
+	free_parser_modules();
+	free_match_moduels();
+	free_output_modules();
 }
 
 static void* do_shooter(void *arg)
@@ -40,7 +62,7 @@ static void* do_capture(void *arg)
 
 }
 
-static pthread_t run_threadable(Config_t *config, bool thread, void *(*fp)(void *))
+static pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *))
 {
 	pthread_t pid = 0;
 
@@ -60,11 +82,19 @@ void usage(int argc, char **argv)
 	echo.e("");
 	echo.e("Usage: inspect <options>");
 	echo.e("options:");
-	echo.e("\t -c <config file>             : inspect config file");
-	echo.e("\t -i <shooter-nic:capture-nic> : shooter and capture wifi interface");
-	echo.e("\t -v                           : version");
-	echo.e("\t -h                           : help");
+	echo.e("\t -i <shooter NIC:capture NIC>    : shooter and capture wifi interface");
+	echo.e("\t -o <output module name:options> : output module");
+	echo.e("\t -p <parser module name:options> : parser module");
+	echo.e("\t -m <match  module name:options> : match module");
+	echo.e("\t -v                              : version");
+	echo.e("\t -h -?                           : help");
 	exit(1);
+
+/*
+
+ -o xml:filename=date.log,rotate=daily;sock:
+
+ */
 }
 
 void sighandler(int signum)
@@ -83,31 +113,50 @@ void sighandler(int signum)
 	default:
 		break;
 	}
-
 }
+
+
 
 int main(int argc, char **argv)
 {
 	int opt;
+	char *interface_opts;
+	Module_option_list_t mopt_list = {
+			.output_module_opts = NULL,
+			.parser_module_opts = NULL,
+			.match_module_opts = NULL,
+	};
 
-	while ((opt = getopt(argc, argv, "c:i:vh?")) != -1) {
+
+	while ((opt = getopt(argc, argv, "i:o:p:m:vh?")) != -1) {
 		switch (opt) {
-		case 'c':
-			break;
 		case 'i':
+			interface_opts = strdup(optarg);
+			break;
+		case 'o':
+
+			mopts.output_module_opts = strdup(optarg);
+			break;
+		case 'p':
+			mopts.parser_module_opts = strdup(optarg);
+			break;
+		case 'm':
+			mopts.match_module_opts = strdup(optarg);
 			break;
 		case 'v':
+			echo.i("version: %d", CUR_VERSION);
 			break;
 		case 'h':
-			break;
 		case '?':
+			usage(argc, argv);
 			break;
 		default:
+			usage(argc, argv);
 			break;
 		}
 	}
 
 
-	init_inspect_modules();
+	setup_modules(mopts);
 
 }

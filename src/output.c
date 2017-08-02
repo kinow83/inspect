@@ -6,26 +6,40 @@
 #include "alloc.h"
 #include "output.h"
 
-Output_module_t *OutputModules;
+static Output_module_t *OutputModules;
 
 
-void init_output(void)
+void init_output_modules(Module_option_t **output_opts)
 {
 	Output_module_t *idx;
+	Module_option_t *opt;
+	int i = 0;
 
-	idx = OutputModules;
-	while (idx) {
-		idx->op.init_output();
+	if (!output_opts) return;
+
+	while (output_opts[i]) {
+		opt = output_opts[i];
+		idx = OutputModules;
+
+		while (idx) {
+			if (!strcasecmp(opt->name, idx->output_name)) {
+				idx->op.init_output(opt->options);
+				idx->enable = true;
+				break;
+			}
+			idx = idx->next;
+		}
+		i++;
 	}
 }
 
-void done_output(void)
+void finish_output_modules(void)
 {
 	Output_module_t *idx;
 
 	idx = OutputModules;
 	while (idx) {
-		idx->op.done_output();
+		idx->op.finish_output();
 	}
 }
 
@@ -42,6 +56,24 @@ void do_output(Action_t *action, Output_data_t *data)
 	}
 }
 
+void free_output_modules(Output_module_t *mod)
+{
+	Output_module_t *idx;
+
+	if (!mod) {
+		mod = OutputModules;
+	}
+	while (mod) {
+		idx = mod->next;
+		if (mod->output_name) {
+			free(mod->output_name);
+		}
+		free(mod);
+
+		mod = idx;
+	}
+}
+
 void register_output_module(const char *output_name, Output_operations_t *op)
 {
 	Output_module_t *idx;
@@ -49,10 +81,11 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 	idx = OutputModules;
 	if (!idx) {
 		OutputModules = alloc_sizeof(Output_module_t);
+		OutputModules->enable = false;
 		OutputModules->output_name = strdup(output_name);
 		OutputModules->op.init_output = op->init_output;
 		OutputModules->op.do_output = op->do_output;
-		OutputModules->op.done_output = op->done_output;
+		OutputModules->op.finish_output = op->finish_output;
 	}
 	else {
 		while (idx->next) {
@@ -63,10 +96,11 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 		}
 
 		idx->next = alloc_sizeof(Output_module_t);
+		idx->enable = false;
 		idx->output_name = strdup(output_name);
 		idx->op.init_output = op->init_output;
 		idx->op.do_output = op->do_output;
-		idx->op.done_output = op->done_output;
+		idx->op.finish_output = op->finish_output;
 	}
 	echo.d("register output module [%s]", output_name);
 }

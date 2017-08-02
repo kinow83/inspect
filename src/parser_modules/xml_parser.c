@@ -139,9 +139,9 @@ static Config_t *do_xml_parser(char *args)
 	return config;
 }
 
-static void init_xml_parser(void)
+static void init_xml_parser(char *options)
 {
-	echo.d("init_xml_parser");
+	echo.d("init_xml_parser: %s", options);
 }
 
 static void done_xml_parser(void)
@@ -151,8 +151,8 @@ static void done_xml_parser(void)
 
 void setup_xml_parser_module(void)
 {
-	Config_operations_t op = {
-			.do_parser = do_xml_parser,
+	Parser_operations_t op = {
+			.do_parser   = do_xml_parser,
 			.init_parser = init_xml_parser,
 			.done_parser = done_xml_parser,
 	};
