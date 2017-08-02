@@ -153,10 +153,8 @@ b2 = 1 (Qos data)
 #define WLAN_FC_STYPE_QOS_CFPOLL    14
 #define WLAN_FC_STYPE_QOS_CFACKPOLL 15
 
-#define VERIFY_WLAN_FRAME_CTRL(subtype) \
-	( \
-		((subtype) >= WLAN_FC_STYPE_DATA) && ((subtype) <= WLAN_FC_STYPE_QOS_CFACKPOLL) \
-	)
+#define VERIFY_WLAN_FRAME_DATA(subtype) \
+	( ((subtype) >= WLAN_FC_STYPE_DATA) && ((subtype) <= WLAN_FC_STYPE_QOS_CFACKPOLL) )
 
 /* Authentication algorithms */
 #define WLAN_AUTH_OPEN          0
@@ -735,7 +733,7 @@ typedef struct h80211_mgmt_t {
 			u16 assoc_id;              // 2 byte
 			/* followed by Supported rates */
 			u8 variable[];
-		} STRUCT_PACKED assoc_resp, reassoc_resp,;   // total: 6 byte
+		} STRUCT_PACKED assoc_resp, reassoc_resp;   // total: 6 byte
 
 		struct {
 			le16 algo;                // 2 byte (0: open system, 1: shared key)

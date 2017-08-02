@@ -19,7 +19,7 @@ typedef struct Match_module_t {
 } Match_module_t;
 
 
-void init_match_modules(void);
+void init_match_modules(Module_option_t *mopt);
 Action_t *do_match(Config_t *, u8 *, size_t, struct rx_info *);
 void finish_match_modules(void);
 void register_match_module(const char *, Match_operations_t *);

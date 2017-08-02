@@ -10,4 +10,4 @@ libparser_a_SOURCES = xml_parser.c
 
 #LDADD = ../ezxml/libezxml.a
 
-INCLUDES = -I../
+AM_CPPFLAGS = -I../

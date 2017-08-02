@@ -12,6 +12,7 @@
 #include "resource.h"
 #include "log.h"
 #include "alloc.h"
+#include "strings.h"
 
 
 Module_option_t* new_module_option(const char *args)
@@ -19,32 +20,59 @@ Module_option_t* new_module_option(const char *args)
 	char **line, **chunk;
 	int nline, nchunk;
 	int i;
-	Module_option_t *mopt;
+	Module_option_t *mopt = NULL;
 
 	if (!args || !strlen(args)) return NULL;
 
 	line = new_splits(args, ";", &nline);
-	if (!line) {
-		echo.f("Invalid option: %s", args);
+	if (!line || nline == 0) {
+		echo.f("Invalid module option: %s", args);
 	}
 
 	for (i=0; i<nline; i++) {
 		chunk = new_splits(line[i], ":", &nchunk);
-		if (!chunk) {
-			free_splits(line);
-			echo.f("Invalid option: %s", line[i]);
+		if (!chunk || nchunk == 0) {
+			echo.f("Invalid module option: %s", line[i]);
 		}
 		if (nchunk != 2) {
-			echo.f("Invalid option: %s", line[i]);
+			echo.f("Invalid module option: %s", line[i]);
 		}
-	}
+		if (!strlen(chunk[0])) {
+			echo.f("Invalid module option 'empty name': %s", line[i]);
+		}
+		if (!strlen(chunk[1])) {
+			echo.f("Invalid module option 'empty option': %s", line[i]);
+		}
 
-	free_splits(line);
+		if (!mopt) {
+			mopt = alloc_sizeof(Module_option_t);
+			mopt->name = strdup(chunk[0]);
+			mopt->options = strdup(chunk[1]);
+		}
+		else {
+			while (mopt->next) {
+				mopt = mopt->next;
+			}
+
+			mopt->next = alloc_sizeof(Module_option_t);
+
+			mopt = mopt->next;
+
+			mopt->name = strdup(chunk[0]);
+			mopt->options = strdup(chunk[1]);
+		}
+		free_splits(chunk, nchunk);
+	}
+	free_splits(line, nline);
+
+	return mopt;
 }
 
 void free_module_option(Module_option_t *mopt)
 {
 	Module_option_t *cur, *tmp;
+
+	if (!mopt) return;
 
 	cur = mopt;
 	while (cur) {
@@ -60,8 +88,6 @@ void free_module_option(Module_option_t *mopt)
 		cur = tmp;
 	}
 }
-
-
 
 void free_tags(Tag_t *tag)
 {

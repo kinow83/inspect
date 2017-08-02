@@ -19,7 +19,8 @@
 #include "match.h"
 #include "parser.h"
 #include "osdep/osdep.h"
-
+#include "resource.h"
+#include "log.h"
 
 int do_exit;
 
@@ -38,6 +39,13 @@ static void init_modules(Module_option_list_t *opts)
 	init_output_modules(opts->output);
 }
 
+static void free_module_option_list(Module_option_list_t *opts)
+{
+	free_module_option(opts->parser);
+	free_module_option(opts->match);
+	free_module_option(opts->output);
+}
+
 static void finish_modules()
 {
 	finish_parser_modules();
@@ -47,9 +55,9 @@ static void finish_modules()
 
 static void free_modules()
 {
-	free_parser_modules();
-	free_match_moduels();
-	free_output_modules();
+	free_parser_modules(NULL);
+	free_match_moduels(NULL);
+	free_output_modules(NULL);
 }
 
 static void* do_shooter(void *arg)
@@ -115,16 +123,14 @@ void sighandler(int signum)
 	}
 }
 
-
-
 int main(int argc, char **argv)
 {
 	int opt;
 	char *interface_opts;
 	Module_option_list_t mopt_list = {
-			.output_module_opts = NULL,
-			.parser_module_opts = NULL,
-			.match_module_opts = NULL,
+			.output = NULL,
+			.parser = NULL,
+			.match  = NULL,
 	};
 
 
@@ -134,14 +140,13 @@ int main(int argc, char **argv)
 			interface_opts = strdup(optarg);
 			break;
 		case 'o':
-
-			mopts.output_module_opts = strdup(optarg);
+			mopt_list.output = new_module_option(optarg);
 			break;
 		case 'p':
-			mopts.parser_module_opts = strdup(optarg);
+			mopt_list.parser = new_module_option(optarg);
 			break;
 		case 'm':
-			mopts.match_module_opts = strdup(optarg);
+			mopt_list.match = new_module_option(optarg);
 			break;
 		case 'v':
 			echo.i("version: %d", CUR_VERSION);
@@ -157,6 +162,15 @@ int main(int argc, char **argv)
 	}
 
 
-	setup_modules(mopts);
+	setup_modules();
 
+	init_modules(&mopt_list);
+
+
+
+
+done:
+	finish_modules();
+	free_modules();
+	free_module_option_list(&mopt_list);
 }

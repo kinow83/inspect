@@ -6,7 +6,9 @@
 #include "log.h"
 #include "alloc.h"
 #include "ezxml/ezxml.h"
+#include "strings.h"
 
+static char *xmlfilename;
 
 static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
 {
@@ -122,18 +124,17 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
  * name: xml_config_load
  * desc: XML 설정 파일을 불러온다.
  */
-static Config_t *do_xml_parser(char *args)
+static Config_t *do_xml_parser(void)
 {
 	Config_t *config;
 	ezxml_t xml;
-	char *filename = args;
 	
-	xml  = ezxml_parse_file(filename);
+	xml  = ezxml_parse_file(xmlfilename);
 	if (!xml) {
-		echo.f("%s is not config file", filename);
+		echo.f("%s is not config file", xmlfilename);
 	}
 
-	config = xml_config_parsing(filename, xml);
+	config = xml_config_parsing(xmlfilename, xml);
 
 	ezxml_free(xml);
 	return config;
@@ -142,19 +143,51 @@ static Config_t *do_xml_parser(char *args)
 static void init_xml_parser(char *options)
 {
 	echo.d("init_xml_parser: %s", options);
+
+	char **chunk, **field;
+	int nchunk, nfield;
+	int i;
+
+	chunk = new_splits(options, ",", &nchunk);
+	if (!chunk || nchunk == 0) {
+		echo.f("error xml_parser: invalid option: %s", options);
+	}
+	for (i=0; i<nchunk; i++) {
+		field = new_splits(chunk[i], "=", &nfield);
+		if (!field || nfield != 2) {
+			echo.f("error xml_parser: invalid option: %s", chunk[i]);
+		}
+		// xml filename
+		if (!strcasecmp("filename", field[0])) {
+			xmlfilename = strdup(field[1]);
+		}
+		free_splits(field, nfield);
+	}
+	free_splits(chunk, nchunk);
+
+	if (!xmlfilename || strlen(xmlfilename) == 0) {
+		echo.f("error xml_parser: empty filename: %s", options);
+	}
+
+	echo.i("[xml parser options]");
+	echo.i("filename = %s", xmlfilename);
 }
 
-static void done_xml_parser(void)
+static void finish_xml_parser(void)
 {
-	echo.d("done_xml_parser");
+	echo.d("finish_xml_parser");
+
+	if (xmlfilename) {
+		free(xmlfilename);
+	}
 }
 
 void setup_xml_parser_module(void)
 {
 	Parser_operations_t op = {
-			.do_parser   = do_xml_parser,
-			.init_parser = init_xml_parser,
-			.done_parser = done_xml_parser,
+			.init_parser   = init_xml_parser,
+			.do_parser     = do_xml_parser,
+			.finish_parser = finish_xml_parser,
 	};
 
 	register_parser_module("xml", &op);

@@ -9,8 +9,10 @@
 #include "ezxml/ezxml.h"
 #include "h80211_struct.h"
 #include "convert.h"
+#include "strings.h"
 
 static u32 xid;
+static char *prefix;
 
 static void do_xml_output(Action_t *action, Output_data_t *data)
 {
@@ -28,7 +30,7 @@ static void do_xml_output(Action_t *action, Output_data_t *data)
 	ezxml_set_attr(child, "xid",     new_ltoa(xid, 10));
 	ezxml_set_attr(child, "sec",     new_ltoa(data->tv.tv_sec, 10));
 	ezxml_set_attr(child, "usec",    new_ltoa(data->tv.tv_usec, 10));
-	ezxml_set_attr(child, "elapsed", new_ltoa(usec2msec(&diff), 10));
+//	ezxml_set_attr(child, "elapsed", new_ltoa(usec2msec(&diff), 10));
 	ezxml_set_attr(child, "pwr",     new_itoa(data->ri->ri_power, 10));
 	ezxml_set_attr(child, "type",    new_itoa(GET_WLAN_TYPE(h), 10));
 	ezxml_set_attr(child, "subtype", new_itoa(GET_WLAN_SUBTYPE(h), 10));
@@ -52,12 +54,42 @@ static void do_xml_output(Action_t *action, Output_data_t *data)
 
 static void init_xml_output(char *options)
 {
-	echo.d("init_xml_output: %s", options);
+	char **chunk, **field;
+	int nchunk, nfield;
+	int i;
+
+	chunk = new_splits(options, ",", &nchunk);
+	if (!chunk || nchunk == 0) {
+		echo.f("error xml_output: invalid option: %s", options);
+	}
+	for (i=0; i<nchunk; i++) {
+		field = new_splits(chunk[i], "=", &nfield);
+		if (!field || nfield != 2) {
+			echo.f("error xml_output: invalid option: %s", chunk[i]);
+		}
+		// output prefix filename
+		if (!strcasecmp("prefix", field[0])) {
+			prefix = strdup(field[1]);
+		}
+		free_splits(field, nfield);
+	}
+	free_splits(chunk, nchunk);
+
+	if (!prefix || strlen(prefix) == 0) {
+		echo.f("error xml_output: empty prefix: %s", options);
+	}
+
+	echo.i("[xml output options]");
+	echo.i("prefix = %s", prefix);
 }
 
-static void done_xml_output(void)
+static void finish_xml_output(void)
 {
-	echo.d("done_xml_output");
+	echo.d("finish_xml_output");
+
+	if (prefix) {
+		free(prefix);
+	}
 }
 
 void setup_xml_output_module(void)
@@ -65,7 +97,7 @@ void setup_xml_output_module(void)
 	Output_operations_t op = {
 			.init_output = init_xml_output,
 			.do_output   = do_xml_output,
-			.done_output = done_xml_output,
+			.finish_output = finish_xml_output,
 	};
 
 	register_output_module("xml", &op);

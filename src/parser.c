@@ -10,27 +10,25 @@
 static Parser_module_t *ParserModules;
 
 
-void init_parser_modules(Module_option_t **parse_opts)
+void init_parser_modules(Module_option_t *mopt)
 {
 	Parser_module_t *idx;
-	Module_option_t *opt;
 	int i = 0;
 
-	if (!parse_opts) return;
+	if (!mopt) return;
 
-	while (parse_opts[i]) {
-		opt = parse_opts[i];
+	while (mopt) {
 		idx = ParserModules;
 
 		while (idx) {
-			if (!strcasecmp(opt->name, idx->parser_name)) {
-				idx->op.init_parser(opt->options);
+			if (!strcasecmp(mopt->name, idx->parser_name)) {
+				idx->op.init_parser(mopt->options);
 				idx->enable = true;
 				break;
 			}
 			idx = idx->next;
 		}
-		i++;
+		mopt = mopt->next;
 	}
 }
 
@@ -46,7 +44,7 @@ void finish_parser_modules(void)
 }
 
 /*
- * free config modules.
+ * free pareser modules.
  */
 void free_parser_modules(Parser_module_t *mod)
 {
@@ -70,7 +68,7 @@ void free_parser_modules(Parser_module_t *mod)
 /*
  * load config by module name.
  */
-Config_t *do_parser(const char *config_name, char *args)
+Config_t *do_parser(const char *parser_name)
 {
 	Parser_module_t *idx;
 	Parser_operations_t *op;
@@ -79,12 +77,12 @@ Config_t *do_parser(const char *config_name, char *args)
 
 	idx = ParserModules;
 	while (idx) {
-		if (!strcasecmp(idx->parser_name, config_name)) {
+		if (!strcasecmp(idx->parser_name, parser_name) && idx->enable == true) {
 			op = &idx->op;
 			if (!op->do_parser) {
 				return NULL;
 			}
-			config = op->do_parser(args);
+			config = op->do_parser();
 			if (!config) {
 				return NULL;
 			}
@@ -120,12 +118,15 @@ void register_parser_module(const char *parser_name, Parser_operations_t *op)
 	else {
 		while (idx->next) {
 			if (!strcasecmp(idx->parser_name, parser_name)) {
-				echo.f("Duplicate config module. %s", parser_name);
+				echo.f("Duplicate parser module. %s", parser_name);
 			}
 			idx = idx->next;
 		}
 
 		idx->next = alloc_sizeof(Parser_module_t);
+
+		idx = idx->next;
+
 		idx->enable = false;
 		idx->parser_name = strdup(parser_name);
 		idx->op.init_parser = op->init_parser;

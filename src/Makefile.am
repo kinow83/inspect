@@ -15,7 +15,11 @@ match.h match.c \
 output.h output.c \
 parser.h parser.c \
 log.h log.c \
-convert.c convert.h
+strings.c string.h \
+convert.c convert.h \
+resource.c resource.h \
+h80211_struct.h version.h types.h
+
 
 inspect_LDADD = match_modules/libmatch.a \
 output_modules/liboutput.a \

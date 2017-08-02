@@ -27,7 +27,7 @@ typedef struct Output_module_t {
 } Output_module_t;
 
 
-void init_output_modules(void);
+void init_output_modules(Module_option_t *mopt);
 void do_output(Action_t *, Output_data_t *);
 void finish_output_modules(void);
 void register_output_module(const char *, Output_operations_t *);

@@ -9,27 +9,25 @@
 static Output_module_t *OutputModules;
 
 
-void init_output_modules(Module_option_t **output_opts)
+void init_output_modules(Module_option_t *mopt)
 {
 	Output_module_t *idx;
-	Module_option_t *opt;
 	int i = 0;
 
-	if (!output_opts) return;
+	if (!mopt) return;
 
-	while (output_opts[i]) {
-		opt = output_opts[i];
+	while (mopt) {
 		idx = OutputModules;
 
 		while (idx) {
-			if (!strcasecmp(opt->name, idx->output_name)) {
-				idx->op.init_output(opt->options);
+			if (!strcasecmp(mopt->name, idx->output_name)) {
+				idx->op.init_output(mopt->options);
 				idx->enable = true;
 				break;
 			}
 			idx = idx->next;
 		}
-		i++;
+		mopt = mopt->next;
 	}
 }
 
@@ -40,6 +38,7 @@ void finish_output_modules(void)
 	idx = OutputModules;
 	while (idx) {
 		idx->op.finish_output();
+		idx = idx->next;
 	}
 }
 
@@ -52,7 +51,10 @@ void do_output(Action_t *action, Output_data_t *data)
 
 	idx = OutputModules;
 	while (idx) {
-		idx->op.do_output(action, data);
+		if(idx->enable == true) {
+			idx->op.do_output(action, data);
+		}
+		idx = idx->next;
 	}
 }
 
@@ -96,6 +98,9 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 		}
 
 		idx->next = alloc_sizeof(Output_module_t);
+
+		idx = idx->next;
+
 		idx->enable = false;
 		idx->output_name = strdup(output_name);
 		idx->op.init_output = op->init_output;

@@ -102,7 +102,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_inspect_OBJECTS = alloc.$(OBJEXT) inspect.$(OBJEXT) match.$(OBJEXT) \
-	output.$(OBJEXT) parser.$(OBJEXT) log.$(OBJEXT)
+	output.$(OBJEXT) parser.$(OBJEXT) log.$(OBJEXT) \
+	strings.$(OBJEXT) convert.$(OBJEXT) resource.$(OBJEXT)
 inspect_OBJECTS = $(am_inspect_OBJECTS)
 inspect_DEPENDENCIES = match_modules/libmatch.a \
 	output_modules/liboutput.a parser_modules/libparser.a \
@@ -348,7 +349,11 @@ inspect.c \
 match.h match.c \
 output.h output.c \
 parser.h parser.c \
-log.h log.c
+log.h log.c \
+strings.c string.h \
+convert.c convert.h \
+resource.c resource.h \
+h80211_struct.h version.h types.h
 
 inspect_LDADD = match_modules/libmatch.a \
 output_modules/liboutput.a \

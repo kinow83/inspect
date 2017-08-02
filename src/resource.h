@@ -20,9 +20,6 @@ typedef struct Module_option_t {
 	struct Module_option_t *next;
 } Module_option_t;
 
-/*
- * MUST last 'Module_option_t' terminated NULL pointer.
- */
 typedef struct Module_option_list_t {
 	Module_option_t *output;
 	Module_option_t *parser;

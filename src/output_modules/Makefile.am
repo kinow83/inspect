@@ -10,4 +10,4 @@ liboutput_a_SOURCES = xml_output.c
 
 #LDADD = ../ezxml/libezxml.a
 
-INCLUDES = -I../
+AM_CPPFLAGS = -I../

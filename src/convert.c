@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include "convert.h"
 
 
 // Converts a mac address in a human-readable format

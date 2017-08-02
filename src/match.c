@@ -9,27 +9,25 @@
 static Match_module_t *MatchModules;
 
 
-void init_match_modules(Module_option_t **match_opts)
+void init_match_modules(Module_option_t *mopt)
 {
 	Match_module_t *idx;
-	Module_option_t *opt;
 	int i = 0;
 
-	if (!match_opts) return;
+	if (!mopt) return;
 
-	while (match_opts[i]) {
-		opt = match_opts[i];
+	while (mopt) {
 		idx = MatchModules;
 
 		while (idx) {
-			if (!strcasecmp(opt->name, idx->match_name)) {
-				idx->op.init_match(opt->options);
+			if (!strcasecmp(mopt->name, idx->match_name)) {
+				idx->op.init_match(mopt->options);
 				idx->enable = true;
 				break;
 			}
 			idx = idx->next;
 		}
-		i++;
+		mopt = mopt->next;
 	}
 }
 
@@ -72,11 +70,14 @@ Action_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_inf
 
 	idx = MatchModules;
 	while (idx) {
-		matched = idx->op.do_match(config, h80211, h80211len, ri);
-		// return matched config.
-		if (matched) {
-			return matched;
+		if (idx->enable == true) {
+			matched = idx->op.do_match(config, h80211, h80211len, ri);
+			// return matched config.
+			if (matched) {
+				return matched;
+			}
 		}
+		idx = idx->next;
 	}
 	return NULL;
 }
@@ -103,6 +104,9 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 		}
 
 		idx->next = alloc_sizeof(Match_module_t);
+
+		idx = idx->next;
+
 		idx->enable = false;
 		idx->match_name = strdup(match_name);
 		idx->op.init_match = op->init_match;

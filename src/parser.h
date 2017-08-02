@@ -12,7 +12,7 @@
 
 typedef struct Parser_operations_t {
 	void (*init_parser)(char *);
-	Config_t* (*do_parser)(char *);
+	Config_t* (*do_parser)(void);
 	void (*finish_parser)(void);
 } Parser_operations_t;
 
@@ -24,8 +24,8 @@ typedef struct Parser_module_t {
 } Parser_module_t;
 
 
-void init_parser_modules(char **module_names, int module_count);
-Config_t *do_parser(const char *parser_name, char *args);
+void init_parser_modules(Module_option_t *mopt);
+Config_t *do_parser(const char *parser_name);
 void finish_parser_modules(void);
 void register_parser_module(const char *, Parser_operations_t *);
 void setup_parser_modules(void);
