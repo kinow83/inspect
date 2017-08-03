@@ -84,21 +84,21 @@ struct rx_info {
  */
 #define MAX_IFACE_NAME	64
 struct wif {
-	int	(*wi_read) (struct wif *, unsigned char *h80211, int len, struct rx_info *);
-	int	(*wi_write)(struct wif *, unsigned char *h80211, int len, struct tx_info *);
-	int	(*wi_set_channel)(struct wif *, int chan);
-	int	(*wi_get_channel)(struct wif *);
-	int	(*wi_set_freq)(struct wif *, int freq);
-	int	(*wi_get_freq)(struct wif *);
+	int	 (*wi_read) (struct wif *, unsigned char *h80211, int len, struct rx_info *);
+	int	 (*wi_write)(struct wif *, unsigned char *h80211, int len, struct tx_info *);
+	int	 (*wi_set_channel)(struct wif *, int chan);
+	int	 (*wi_get_channel)(struct wif *);
+	int	 (*wi_set_freq)(struct wif *, int freq);
+	int	 (*wi_get_freq)(struct wif *);
 	void	(*wi_close)(struct wif *);
-	int	(*wi_fd)(struct wif *);
-	int	(*wi_get_mac)(struct wif *, unsigned char *mac);
-	int	(*wi_set_mac)(struct wif *, unsigned char *mac);
-	int	(*wi_set_rate)(struct wif *, int rate);
-	int	(*wi_get_rate)(struct wif *);
-	int	(*wi_set_mtu)(struct wif *, int mtu);
-	int	(*wi_get_mtu)(struct wif *);
-	int	(*wi_get_monitor)(struct wif *);
+	int	 (*wi_fd)(struct wif *);
+	int	 (*wi_get_mac)(struct wif *, unsigned char *mac);
+	int	 (*wi_set_mac)(struct wif *, unsigned char *mac);
+	int	 (*wi_set_rate)(struct wif *, int rate);
+	int	 (*wi_get_rate)(struct wif *);
+	int	 (*wi_set_mtu)(struct wif *, int mtu);
+	int	 (*wi_get_mtu)(struct wif *);
+	int	 (*wi_get_monitor)(struct wif *);
 	void	*wi_priv;
 	char	wi_interface[MAX_IFACE_NAME];
 };

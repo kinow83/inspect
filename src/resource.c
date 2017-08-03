@@ -45,20 +45,22 @@ Module_option_t* new_module_option(const char *args)
 		if (!chunk || nchunk == 0) {
 			echo.f("Invalid module option: %s", line[i]);
 		}
-		if (nchunk != 2) {
+		if (!(nchunk == 1 || nchunk == 2)) {
 			echo.f("Invalid module option: %s", line[i]);
 		}
 		if (!strlen(chunk[0])) {
 			echo.f("Invalid module option 'empty name': %s", line[i]);
 		}
-		if (!strlen(chunk[1])) {
+		if (nchunk == 2 && !strlen(chunk[1])) {
 			echo.f("Invalid module option 'empty option': %s", line[i]);
 		}
 
 		if (!mopt) {
 			mopt = alloc_sizeof(Module_option_t);
 			mopt->name = strdup(chunk[0]);
-			mopt->options = strdup(chunk[1]);
+			if (nchunk == 2) {
+				mopt->options = strdup(chunk[1]);
+			}
 		}
 		else {
 			tmp = mopt;
