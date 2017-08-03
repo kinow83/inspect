@@ -24,10 +24,12 @@ typedef struct Module_option_list_t {
 	Module_option_t *output;
 	Module_option_t *parser;
 	Module_option_t *match;
+	Module_option_t *rtx;
 } Module_option_list_t;
 
 void free_module_option(Module_option_t *);
 Module_option_t* new_module_option(const char *args);
+size_t num_module_option(Module_option_t *mopt);
 
 /*
  * cv_def: Config Value Define.

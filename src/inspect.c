@@ -18,9 +18,12 @@
 #include "output.h"
 #include "match.h"
 #include "parser.h"
+#include "rtx.h"
 #include "osdep/osdep.h"
 #include "resource.h"
 #include "log.h"
+#include "module.h"
+
 
 int do_exit;
 
@@ -30,13 +33,22 @@ static void setup_modules(void)
 	setup_parser_modules();
 	setup_match_modules();
 	setup_output_modules();
+	setup_rtx_modules();
 }
 
 static void init_modules(Module_option_list_t *opts)
 {
+	echo.d("initialize parser modules");
 	init_parser_modules(opts->parser);
+
+	echo.d("initialize match modules");
 	init_match_modules(opts->match);
+
+	echo.d("initialize output modules");
 	init_output_modules(opts->output);
+
+	echo.d("initialize rtx modules");
+	init_rtx_modules(opts->rtx);
 }
 
 static void free_module_option_list(Module_option_list_t *opts)
@@ -44,20 +56,38 @@ static void free_module_option_list(Module_option_list_t *opts)
 	free_module_option(opts->parser);
 	free_module_option(opts->match);
 	free_module_option(opts->output);
+	free_module_option(opts->rtx);
 }
 
 static void finish_modules()
 {
+	echo.d("finish parser modules");
 	finish_parser_modules();
+
+	echo.d("finish match modules");
 	finish_match_modules();
+
+	echo.d("finish output modules");
 	finish_output_modules();
+
+	echo.d("finish rtx modules");
+	finish_rtx_modules();
 }
 
 static void free_modules()
 {
+	echo.d("free/release parser modules");
 	free_parser_modules(NULL);
+
+	echo.d("free/release match modules");
 	free_match_moduels(NULL);
+
+	echo.d("free/release output modules");
 	free_output_modules(NULL);
+
+	echo.d("free/release rtx modules");
+	free_rtx_modules(NULL);
+
 }
 
 static void* do_shooter(void *arg)
@@ -87,15 +117,19 @@ static pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *
 
 void usage(int argc, char **argv)
 {
-	echo.e("");
-	echo.e("Usage: inspect <options>");
-	echo.e("options:");
-	echo.e("\t -i <shooter NIC:capture NIC>    : shooter and capture wifi interface");
-	echo.e("\t -o <output module name:options> : output module");
-	echo.e("\t -p <parser module name:options> : parser module");
-	echo.e("\t -m <match  module name:options> : match module");
-	echo.e("\t -v                              : version");
-	echo.e("\t -h -?                           : help");
+	echo.out("");
+	echo.OUT("Usage: inspect <options>");
+	echo.out("options:");
+	echo.out("\t -r <rtx module name:options>    : rtx module");
+	usage_rts_module();
+	echo.out("\t -o <output module name:options> : output module");
+	usage_output_module();
+	echo.out("\t -p <parser module name:options> : parser module");
+	usage_parser_module();
+	echo.out("\t -m <match  module name:options> : match module");
+	usage_match_module();
+	echo.out("\t -v                              : version");
+	echo.out("\t -h -?                           : help");
 	exit(1);
 
 /*
@@ -126,18 +160,14 @@ void sighandler(int signum)
 int main(int argc, char **argv)
 {
 	int opt;
-	char *interface_opts;
-	Module_option_list_t mopt_list = {
-			.output = NULL,
-			.parser = NULL,
-			.match  = NULL,
-	};
+	Module_option_list_t mopt_list = {NULL,};
 
+	setup_modules();
 
-	while ((opt = getopt(argc, argv, "i:o:p:m:vh?")) != -1) {
+	while ((opt = getopt(argc, argv, "r:o:p:m:vh?")) != -1) {
 		switch (opt) {
-		case 'i':
-			interface_opts = strdup(optarg);
+		case 'r':
+			mopt_list.rtx = new_module_option(optarg);
 			break;
 		case 'o':
 			mopt_list.output = new_module_option(optarg);
@@ -161,11 +191,22 @@ int main(int argc, char **argv)
 		}
 	}
 
-
-	setup_modules();
+	if (num_module_option(mopt_list.parser) != 1) {
+		echo.OUT("MUST set parser module only one: -p");
+		exit(1);
+	}
 
 	init_modules(&mopt_list);
 
+	Config_t *config = do_parser(mopt_list.parser->name);
+	if (!config) {
+		echo.f("error parsing for %s", mopt_list.parser->name);
+	} else {
+		debug_config(config);
+	}
+
+
+	do_rtx_modules(config);
 
 
 

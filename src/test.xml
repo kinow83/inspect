@@ -30,7 +30,7 @@
 
 	<action>
 		<no>2</no>
-		<enable>1</enable>
+		<enable>0</enable>
 		<name>test2</name>
 		<dwell>200</dwell>
 		<channel>2</channel>

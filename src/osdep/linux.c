@@ -467,7 +467,7 @@ static int linux_set_rate(struct wif *wi, int rate)
         if( ioctl( dev->fd_in, SIOCGIFINDEX, &ifr ) < 0 )
         {
             printf("Interface %s: \n", wi_get_ifname(wi));
-            perror( "ioctl(SIOCGIFINDEX) failed" );
+            perror( "linux_set_rate:ioctl(SIOCGIFINDEX) failed" );
             return( 1 );
         }
 
@@ -1416,7 +1416,7 @@ static int openraw(struct priv_linux *dev, char *iface, int fd, int *arptype,
     if( ioctl( fd, SIOCGIFINDEX, &ifr ) < 0 )
     {
         printf("Interface %s: \n", iface);
-        perror( "ioctl(SIOCGIFINDEX) failed" );
+        perror( "openraw:ioctl(SIOCGIFINDEX) failed" );
         return( 1 );
     }
 
@@ -1434,7 +1434,7 @@ static int openraw(struct priv_linux *dev, char *iface, int fd, int *arptype,
         if( ioctl( dev->fd_main, SIOCGIFINDEX, &ifr2 ) < 0 )
         {
             printf("Interface %s: \n", dev->main_if);
-            perror( "ioctl(SIOCGIFINDEX) failed" );
+            perror( "openraw:DT_IPW2200:ioctl(SIOCGIFINDEX) failed" );
             return( 1 );
         }
 
@@ -1623,16 +1623,14 @@ static int do_linux_open(struct wif *wi, char *iface)
 	dev->rate = 2; /* default to 1Mbps if nothing is set */
 
 	/* open raw socks */
-	if ((dev->fd_in = socket( PF_PACKET, SOCK_RAW,
-	htons( ETH_P_ALL ))) < 0) {
+	if ((dev->fd_in = socket( PF_PACKET, SOCK_RAW, htons( ETH_P_ALL ))) < 0) {
 		perror("socket(PF_PACKET) failed");
 		if (getuid() != 0)
 			fprintf( stderr, "This program requires root privileges.\n");
 		return (1);
 	}
 
-	if ((dev->fd_main = socket( PF_PACKET, SOCK_RAW,
-	htons( ETH_P_ALL ))) < 0) {
+	if ((dev->fd_main = socket( PF_PACKET, SOCK_RAW, htons( ETH_P_ALL ))) < 0) {
 		perror("socket(PF_PACKET) failed");
 		if (getuid() != 0)
 			fprintf( stderr, "This program requires root privileges.\n");
@@ -1660,8 +1658,7 @@ static int do_linux_open(struct wif *wi, char *iface)
 		goto close_in;
 	}
 
-	if ((dev->fd_out = socket( PF_PACKET, SOCK_RAW,
-	htons( ETH_P_ALL ))) < 0) {
+	if ((dev->fd_out = socket( PF_PACKET, SOCK_RAW, htons( ETH_P_ALL ))) < 0) {
 		perror("socket(PF_PACKET) failed");
 		goto close_in;
 	}
@@ -2016,7 +2013,11 @@ close_in:
 	}
 	if (iwpriv) {
 		free(iwpriv);
+#ifndef CONFIG_LIBNL
+		dev->iwpriv = NULL;
+#endif
 	}
+
 	return 1;
 }
 
@@ -2024,21 +2025,20 @@ static void do_free(struct wif *wi)
 {
 	struct priv_linux *pl = wi_priv(wi);
 
+	if (!pl) {
+		free(wi);
+		return;
+	}
 	if (pl->wlanctlng)
 		free(pl->wlanctlng);
-
 	if (pl->iwpriv)
 		free(pl->iwpriv);
-
 	if (pl->iwconfig)
 		free(pl->iwconfig);
-
 	if (pl->ifconfig)
 		free(pl->ifconfig);
-
 	if (pl->wl)
 		free(pl->wl);
-
 	if (pl->main_if)
 		free(pl->main_if);
 
@@ -2106,7 +2106,7 @@ static int linux_get_mac(struct wif *wi, unsigned char *mac)
 	if( ioctl( fd, SIOCGIFINDEX, &ifr ) < 0 )
 	{
 		printf("Interface %s: \n", wi_get_ifname(wi));
-		perror( "ioctl(SIOCGIFINDEX) failed" );
+		perror( "linux_get_mac:ioctl(SIOCGIFINDEX) failed" );
 		return( 1 );
 	}
 

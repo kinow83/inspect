@@ -41,7 +41,7 @@
 #include "packed.h"
 #include "channel.h"
 
-#if defined(__APPLE_CC__) && defined(_XCODE)
+//#if defined(__APPLE_CC__) && defined(_XCODE)
 #include <pcap/bpf.h>
 #undef	LINKTYPE_RADIOTAP_HDR
 #define LINKTYPE_RADIOTAP_HDR   DLT_IEEE802_11_RADIO
@@ -55,7 +55,7 @@
 #define LINKTYPE_PPI_HDR        DLT_PPI
 #undef	TCPDUMP_MAGIC
 #define TCPDUMP_MAGIC           0xa1b2c3d4
-#endif
+//#endif
 
 
 

@@ -24,6 +24,9 @@ static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
 	} else {
 		echo.f("empty 'enable' of action in %s", filename);
 	}
+	if (!action->enable) {
+		return NULL;
+	}
 	// action name and check mandatory action.
 	e = ezxml_child(xml, "name");
 	if (e && e->txt) {
@@ -182,12 +185,18 @@ static void finish_xml_parser(void)
 	}
 }
 
+static const char *usage_xml_parser(void)
+{
+	return "xml:filename=<config file>";
+}
+
 void setup_xml_parser_module(void)
 {
 	Parser_operations_t op = {
-			.init_parser   = init_xml_parser,
-			.do_parser     = do_xml_parser,
-			.finish_parser = finish_xml_parser,
+		.init_parser   = init_xml_parser,
+		.do_parser     = do_xml_parser,
+		.finish_parser = finish_xml_parser,
+		.usage_parser  = usage_xml_parser,
 	};
 
 	register_parser_module("xml", &op);

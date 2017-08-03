@@ -16,6 +16,7 @@ typedef struct Output_operations_t {
 	void (*init_output)(char *);
 	void (*do_output)(Action_t *, Output_data_t *);
 	void (*finish_output)(void);
+	const char* (*usage_output)(void);
 } Output_operations_t;
 
 typedef struct Output_module_t {
@@ -33,5 +34,6 @@ void finish_output_modules(void);
 void register_output_module(const char *, Output_operations_t *);
 void setup_output_modules(void);
 void free_output_modules(Output_module_t *mod);
+void usage_output_module(void);
 
 #endif

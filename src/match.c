@@ -8,11 +8,16 @@
 
 static Match_module_t *MatchModules;
 
+#if 0
+Match_module_t *get_match_modules(void)
+{
+	return MatchModules;
+}
+#endif
 
 void init_match_modules(Module_option_t *mopt)
 {
 	Match_module_t *idx;
-	int i = 0;
 
 	if (!mopt) return;
 
@@ -23,6 +28,7 @@ void init_match_modules(Module_option_t *mopt)
 			if (!strcasecmp(mopt->name, idx->match_name)) {
 				idx->op.init_match(mopt->options);
 				idx->enable = true;
+				echo.d("enable module: %s", mopt->name);
 				break;
 			}
 			idx = idx->next;
@@ -51,9 +57,7 @@ void free_match_moduels(Match_module_t *mod)
 	}
 	while (mod) {
 		idx = mod->next;
-		if (mod->match_name) {
-			free(mod->match_name);
-		}
+		if (mod->match_name) free(mod->match_name);
 		free(mod);
 
 		mod = idx;
@@ -94,6 +98,7 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 		MatchModules->op.init_match = op->init_match;
 		MatchModules->op.do_match = op->do_match;
 		MatchModules->op.finish_match = op->finish_match;
+		MatchModules->op.usage_match = op->usage_match;
 	}
 	else {
 		while (idx->next) {
@@ -112,15 +117,26 @@ void register_match_module(const char *match_name, Match_operations_t *op)
 		idx->op.init_match = op->init_match;
 		idx->op.do_match = op->do_match;
 		idx->op.finish_match = op->finish_match;
+		idx->op.usage_match = op->usage_match;
 	}
-	echo.d("register match module [%s]", match_name);
+//	echo.d("register match module [%s]", match_name);
 }
 
-
-
-extern void setup_h80211_match_module();
-
-void setup_match_modules()
+void usage_match_module(void)
 {
-	setup_h80211_match_module();
+	Match_module_t *idx;
+
+	idx = MatchModules;
+	while (idx) {
+		echo.out("\t\t[%s]", idx->match_name);
+		echo.out("\t\t\t%s", idx->op.usage_match());
+		idx = idx->next;
+	}
+}
+
+extern void setup_wifi_match_module();
+
+void setup_match_modules(void)
+{
+	setup_wifi_match_module();
 }

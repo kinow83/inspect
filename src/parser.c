@@ -9,6 +9,12 @@
 
 static Parser_module_t *ParserModules;
 
+#if 0
+Parser_module_t *get_parsermodules(void)
+{
+	return ParserModules;
+}
+#endif
 
 void init_parser_modules(Module_option_t *mopt)
 {
@@ -24,6 +30,7 @@ void init_parser_modules(Module_option_t *mopt)
 			if (!strcasecmp(mopt->name, idx->parser_name)) {
 				idx->op.init_parser(mopt->options);
 				idx->enable = true;
+				echo.d("enable module: %s", mopt->name);
 				break;
 			}
 			idx = idx->next;
@@ -56,9 +63,7 @@ void free_parser_modules(Parser_module_t *mod)
 
 	while (mod) {
 		idx = mod->next;
-		if (mod->parser_name) {
-			free(mod->parser_name);
-		}
+		if (mod->parser_name) free(mod->parser_name);
 		free(mod);
 
 		mod = idx;
@@ -94,6 +99,7 @@ Config_t *do_parser(const char *parser_name)
 			action = config->action;
 			while (action) {
 				action->config = config;
+				action = action->next;
 			}
 			return config;
 		}
@@ -114,6 +120,7 @@ void register_parser_module(const char *parser_name, Parser_operations_t *op)
 		ParserModules->op.init_parser = op->init_parser;
 		ParserModules->op.do_parser = op->do_parser;
 		ParserModules->op.finish_parser = op->finish_parser;
+		ParserModules->op.usage_parser = op->usage_parser;
 	}
 	else {
 		while (idx->next) {
@@ -132,10 +139,22 @@ void register_parser_module(const char *parser_name, Parser_operations_t *op)
 		idx->op.init_parser = op->init_parser;
 		idx->op.do_parser = op->do_parser;
 		idx->op.finish_parser = op->finish_parser;
+		idx->op.usage_parser = op->usage_parser;
 	}
-	echo.d("register parser module [%s]", parser_name);
+//	echo.d("register parser module [%s]", parser_name);
 }
 
+void usage_parser_module(void)
+{
+	Parser_module_t *idx;
+
+	idx = ParserModules;
+	while (idx) {
+		echo.out("\t\t[%s]", idx->parser_name);
+		echo.out("\t\t\t%s", idx->op.usage_parser());
+		idx = idx->next;
+	}
+}
 
 
 extern void setup_xml_parser_module(void);

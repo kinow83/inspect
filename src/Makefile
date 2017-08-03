@@ -101,17 +101,23 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_inspect_OBJECTS = alloc.$(OBJEXT) inspect.$(OBJEXT) match.$(OBJEXT) \
-	output.$(OBJEXT) parser.$(OBJEXT) log.$(OBJEXT) \
-	strings.$(OBJEXT) convert.$(OBJEXT) resource.$(OBJEXT)
+am_inspect_OBJECTS = inspect-alloc.$(OBJEXT) inspect-convert.$(OBJEXT) \
+	inspect-inspect.$(OBJEXT) inspect-log.$(OBJEXT) \
+	inspect-match.$(OBJEXT) inspect-output.$(OBJEXT) \
+	inspect-parser.$(OBJEXT) inspect-resource.$(OBJEXT) \
+	inspect-rtx.$(OBJEXT) inspect-strings.$(OBJEXT) \
+	inspect-module.$(OBJEXT)
 inspect_OBJECTS = $(am_inspect_OBJECTS)
 inspect_DEPENDENCIES = match_modules/libmatch.a \
 	output_modules/liboutput.a parser_modules/libparser.a \
-	ezxml/libezxml.a
+	rtx_modules/librtx.a ezxml/libezxml.a osdep/libosdep.a
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+inspect_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(inspect_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -342,24 +348,28 @@ top_srcdir = ..
 # Copyright 2017 Kang seok ju <kinow83@gmail.com>
 #
 AUTOMAKE_OPTIONS = foreign no-dependencies
-SUBDIRS = osdep ezxml match_modules output_modules parser_modules
-inspect_SOURCES = alloc.h alloc.c \
-format.h \
-inspect.c \
-match.h match.c \
-output.h output.c \
-parser.h parser.c \
-log.h log.c \
-strings.c string.h \
+SUBDIRS = osdep ezxml match_modules output_modules parser_modules rtx_modules
+inspect_SOURCES = h80211_struct.h version.h types.h format.h \
+alloc.c alloc.h \
 convert.c convert.h \
+inspect.c \
+log.c log.h \
+match.c match.h \
+output.c output.h \
+parser.c parser.h \
 resource.c resource.h \
-h80211_struct.h version.h types.h
+rtx.c rtx.h \
+strings.c strings.h \
+module.c module.h 
 
 inspect_LDADD = match_modules/libmatch.a \
 output_modules/liboutput.a \
 parser_modules/libparser.a \
-ezxml/libezxml.a 
+rtx_modules/librtx.a \
+ezxml/libezxml.a \
+osdep/libosdep.a
 
+inspect_CFLAGS = -g
 all: all-recursive
 
 .SUFFIXES:
@@ -445,7 +455,7 @@ clean-binPROGRAMS:
 
 inspect$(EXEEXT): $(inspect_OBJECTS) $(inspect_DEPENDENCIES) $(EXTRA_inspect_DEPENDENCIES) 
 	@rm -f inspect$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(inspect_OBJECTS) $(inspect_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(inspect_LINK) $(inspect_OBJECTS) $(inspect_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -461,6 +471,72 @@ distclean-compile:
 
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
+inspect-alloc.o: alloc.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-alloc.o `test -f 'alloc.c' || echo '$(srcdir)/'`alloc.c
+
+inspect-alloc.obj: alloc.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-alloc.obj `if test -f 'alloc.c'; then $(CYGPATH_W) 'alloc.c'; else $(CYGPATH_W) '$(srcdir)/alloc.c'; fi`
+
+inspect-convert.o: convert.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-convert.o `test -f 'convert.c' || echo '$(srcdir)/'`convert.c
+
+inspect-convert.obj: convert.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-convert.obj `if test -f 'convert.c'; then $(CYGPATH_W) 'convert.c'; else $(CYGPATH_W) '$(srcdir)/convert.c'; fi`
+
+inspect-inspect.o: inspect.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-inspect.o `test -f 'inspect.c' || echo '$(srcdir)/'`inspect.c
+
+inspect-inspect.obj: inspect.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-inspect.obj `if test -f 'inspect.c'; then $(CYGPATH_W) 'inspect.c'; else $(CYGPATH_W) '$(srcdir)/inspect.c'; fi`
+
+inspect-log.o: log.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-log.o `test -f 'log.c' || echo '$(srcdir)/'`log.c
+
+inspect-log.obj: log.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-log.obj `if test -f 'log.c'; then $(CYGPATH_W) 'log.c'; else $(CYGPATH_W) '$(srcdir)/log.c'; fi`
+
+inspect-match.o: match.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-match.o `test -f 'match.c' || echo '$(srcdir)/'`match.c
+
+inspect-match.obj: match.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-match.obj `if test -f 'match.c'; then $(CYGPATH_W) 'match.c'; else $(CYGPATH_W) '$(srcdir)/match.c'; fi`
+
+inspect-output.o: output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-output.o `test -f 'output.c' || echo '$(srcdir)/'`output.c
+
+inspect-output.obj: output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-output.obj `if test -f 'output.c'; then $(CYGPATH_W) 'output.c'; else $(CYGPATH_W) '$(srcdir)/output.c'; fi`
+
+inspect-parser.o: parser.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-parser.o `test -f 'parser.c' || echo '$(srcdir)/'`parser.c
+
+inspect-parser.obj: parser.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-parser.obj `if test -f 'parser.c'; then $(CYGPATH_W) 'parser.c'; else $(CYGPATH_W) '$(srcdir)/parser.c'; fi`
+
+inspect-resource.o: resource.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-resource.o `test -f 'resource.c' || echo '$(srcdir)/'`resource.c
+
+inspect-resource.obj: resource.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-resource.obj `if test -f 'resource.c'; then $(CYGPATH_W) 'resource.c'; else $(CYGPATH_W) '$(srcdir)/resource.c'; fi`
+
+inspect-rtx.o: rtx.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-rtx.o `test -f 'rtx.c' || echo '$(srcdir)/'`rtx.c
+
+inspect-rtx.obj: rtx.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-rtx.obj `if test -f 'rtx.c'; then $(CYGPATH_W) 'rtx.c'; else $(CYGPATH_W) '$(srcdir)/rtx.c'; fi`
+
+inspect-strings.o: strings.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-strings.o `test -f 'strings.c' || echo '$(srcdir)/'`strings.c
+
+inspect-strings.obj: strings.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-strings.obj `if test -f 'strings.c'; then $(CYGPATH_W) 'strings.c'; else $(CYGPATH_W) '$(srcdir)/strings.c'; fi`
+
+inspect-module.o: module.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-module.o `test -f 'module.c' || echo '$(srcdir)/'`module.c
+
+inspect-module.obj: module.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-module.obj `if test -f 'module.c'; then $(CYGPATH_W) 'module.c'; else $(CYGPATH_W) '$(srcdir)/module.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -92,12 +92,18 @@ static void finish_xml_output(void)
 	}
 }
 
+static const char *usage_xml_output(void)
+{
+	return "xml:prefix=<prefix of output file>";
+}
+
 void setup_xml_output_module(void)
 {
 	Output_operations_t op = {
-			.init_output = init_xml_output,
-			.do_output   = do_xml_output,
+			.init_output   = init_xml_output,
+			.do_output     = do_xml_output,
 			.finish_output = finish_xml_output,
+			.usage_output  = usage_xml_output,
 	};
 
 	register_output_module("xml", &op);

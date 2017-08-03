@@ -108,7 +108,8 @@ libosdep_a_AR = $(AR) $(ARFLAGS)
 libosdep_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libosdep_a_OBJECTS = linux.$(OBJEXT) linux_tap.$(OBJEXT) \
-	radiotap/radiotap.$(OBJEXT) common.$(OBJEXT)
+	osdep.$(OBJEXT) radiotap/radiotap.$(OBJEXT) common.$(OBJEXT) \
+	file.$(OBJEXT) network.$(OBJEXT)
 libosdep_a_OBJECTS = $(am_libosdep_a_OBJECTS)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
@@ -304,12 +305,16 @@ top_srcdir = ../..
 AUTOMAKE_OPTIONS = foreign no-dependencies subdir-objects
 noinst_LIBRARIES = libosdep.a
 libosdep_a_SOURCES = linux.c linux_tap.c \
-osdep.h crctable_osdep.h \
+osdep.h osdep.c crctable_osdep.h \
 byteorder.h \
 radiotap/radiotap.h radiotap/radiotap.c radiotap/radiotap_iter.h radiotap/platform.h \
-common.c common.h
+common.c common.h \
+file.c \
+network.c network.h
 
-AM_CPPFLAGS = 
+
+#libosdep_a_LIBADD = -lpcap
+AM_CPPFLAGS = -I../
 all: all-am
 
 .SUFFIXES:

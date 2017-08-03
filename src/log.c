@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "log.h"
 
 /*
@@ -49,7 +50,9 @@ txtrst='\e[0m'    # Text Reset
 	#define VTC_RED    "\x1b[31m" //!< Colour following text red.
 	#define VTC_GREEN  "\x1b[32m" //!< Colour following text creen.
 	#define VTC_YELLOW "\x1b[33m" //!< Colour following text yellow.
-	#define VTC_BOLD   "\x1b[1m" //!< Embolden following text.
+	#define VTC_BOLD   "\x1b[1m"  //!< Embolden following text.
+	#define VTC_WHITE	  "\x1b[37m" //!< Colour following text white.
+
 	#define VTC_RESET  "\x1b[0m" //!< Reset terminal text to default style/colour.
 #endif
 
@@ -61,7 +64,8 @@ static const char *LOG_STR[] = {
 };
 
 static void console_log(int lv, const char *fmt, va_list ap, 
-						u8 *hex, size_t len, const char *color) {
+						u8 *hex, size_t len, const char *color, bool bold)
+{
 	struct tm t_now;
 	time_t now;
 	char strtime[256];
@@ -96,6 +100,9 @@ static void console_log(int lv, const char *fmt, va_list ap,
 			}
 		}
 
+		if (bold == true) {
+			fprintf(fp, "%s", VTC_BOLD);
+		}
 		if (hex) {
 			fprintf(fp, "%s%s: %s: (len:%ld) %s\n", 
 										color, strtime, lv_str, len, buf);
@@ -110,69 +117,147 @@ static void console_log(int lv, const char *fmt, va_list ap,
 	}
 }
 
-static void console_fatal(const char *fmt, ...) {
+static void console_out(const char *fmt, ...)
+{
+	char buf[512];
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_FATAL, fmt, ap, NULL, 0, VTC_YELLOW);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	fprintf(stderr, "%s\n", buf);
 	va_end(ap);
 }
 
-static void console_error(const char *fmt, ...) {
+static void CONSOLE_OUT(const char *fmt, ...)
+{
+	char buf[512];
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_ERROR, fmt, ap, NULL, 0, VTC_RED);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	fprintf(stderr, "%s%s\n%s", VTC_BOLD, buf, VTC_WHITE);
 	va_end(ap);
 }
 
-static void console_info(const char *fmt, ...) {
+/*
+ * normal
+ */
+static void console_fatal(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_INFO, fmt, ap, NULL, 0, VTC_GREEN);
+	console_log(L_FATAL, fmt, ap, NULL, 0, VTC_YELLOW, false);
 	va_end(ap);
 }
 
-static void console_debug(const char *fmt, ...) {
+static void console_error(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_DEBUG, fmt, ap, NULL, 0, VTC_RESET);
+	console_log(L_ERROR, fmt, ap, NULL, 0, VTC_RED, false);
 	va_end(ap);
 }
 
-static void console_hex_fatal(u8 *hex, size_t len, const char *fmt, ...) {
+static void console_info(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_FATAL, fmt, ap, hex, len, VTC_YELLOW);
+	console_log(L_INFO, fmt, ap, NULL, 0, VTC_GREEN, false);
 	va_end(ap);
 }
 
-static void console_hex_error(u8 *hex, size_t len, const char *fmt, ...) {
+static void console_debug(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_ERROR, fmt, ap, hex, len, VTC_RED);
+	console_log(L_DEBUG, fmt, ap, NULL, 0, VTC_WHITE, false);
 	va_end(ap);
 }
 
-static void console_hex_info(u8 *hex, size_t len, const char *fmt, ...) {
+static void console_hex_fatal(u8 *hex, size_t len, const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_INFO, fmt, ap, hex, len, VTC_GREEN);
+	console_log(L_FATAL, fmt, ap, hex, len, VTC_YELLOW, false);
 	va_end(ap);
 }
 
-static void console_hex_debug(u8 *hex, size_t len, const char *fmt, ...) {
+/*
+ * bold
+ */
+static void CONSOLE_FATAL(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
-	console_log(L_DEBUG, fmt, ap, hex, len, VTC_RESET);
+	console_log(L_FATAL, fmt, ap, NULL, 0, VTC_YELLOW, true);
+	va_end(ap);
+}
+
+static void CONSOLE_ERROR(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	console_log(L_ERROR, fmt, ap, NULL, 0, VTC_RED, true);
+	va_end(ap);
+}
+
+static void CONSOLE_INFO(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	console_log(L_INFO, fmt, ap, NULL, 0, VTC_GREEN, true);
+	va_end(ap);
+}
+
+static void CONSOLE_DEBUG(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	va_end(ap);
+	console_log(L_DEBUG, fmt, ap, NULL, 0, VTC_WHITE, true);
+}
+
+/*
+ * hex
+ */
+static void console_hex_error(u8 *hex, size_t len, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	console_log(L_ERROR, fmt, ap, hex, len, VTC_RED, false);
+	va_end(ap);
+}
+
+static void console_hex_info(u8 *hex, size_t len, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	console_log(L_INFO, fmt, ap, hex, len, VTC_GREEN, false);
+	va_end(ap);
+}
+
+static void console_hex_debug(u8 *hex, size_t len, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	console_log(L_DEBUG, fmt, ap, hex, len, VTC_WHITE, false);
 	va_end(ap);
 }
 
 int log_level = L_ALL;
 
 struct log_ctx echo = {
+	.out = console_out,
+	.OUT = CONSOLE_OUT,
+
+	.F = CONSOLE_FATAL,
+	.E = CONSOLE_ERROR,
+	.I = CONSOLE_INFO,
+	.D = CONSOLE_DEBUG,
+
 	.f = console_fatal,
 	.e = console_error,
 	.i = console_info,
 	.d = console_debug,
+
 	.hf = console_hex_fatal,
 	.he = console_hex_error,
 	.hi = console_hex_info,

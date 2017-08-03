@@ -15,12 +15,23 @@
 #include "strings.h"
 
 
+size_t num_module_option(Module_option_t *mopt)
+{
+	size_t n = 0;
+
+	while (mopt) {
+		n++;
+		mopt = mopt->next;
+	}
+	return n;
+}
+
 Module_option_t* new_module_option(const char *args)
 {
 	char **line, **chunk;
 	int nline, nchunk;
 	int i;
-	Module_option_t *mopt = NULL;
+	Module_option_t *mopt = NULL, *tmp;
 
 	if (!args || !strlen(args)) return NULL;
 
@@ -50,16 +61,17 @@ Module_option_t* new_module_option(const char *args)
 			mopt->options = strdup(chunk[1]);
 		}
 		else {
-			while (mopt->next) {
-				mopt = mopt->next;
+			tmp = mopt;
+			while (tmp->next) {
+				tmp = tmp->next;
 			}
 
-			mopt->next = alloc_sizeof(Module_option_t);
+			tmp->next = alloc_sizeof(Module_option_t);
 
-			mopt = mopt->next;
+			tmp = tmp->next;
 
-			mopt->name = strdup(chunk[0]);
-			mopt->options = strdup(chunk[1]);
+			tmp->name = strdup(chunk[0]);
+			tmp->options = strdup(chunk[1]);
 		}
 		free_splits(chunk, nchunk);
 	}
@@ -195,50 +207,52 @@ void sort_actions(Action_t **action)
 
 void debug_action(Action_t *action)
 {
-	echo.d("no = %d", action->no);
-	echo.d("action = %s", action->name);
-	echo.d("channel = %d", action->channel);
-	echo.d("dwell = %d", action->dwell);
+	echo.D("[action debug] ---------------------------");
+	echo.D("no = %d", action->no);
+	echo.D("action = %s", action->name);
+	echo.D("channel = %d", action->channel);
+	echo.D("dwell = %d", action->dwell);
 
 	if (cv_enabled(action->type)) {
-		echo.d("type = %d", action->type);
+		echo.D("type = %d", action->type);
 	}
 	if (cv_enabled(action->subtype)) {
-		echo.d("subtype = %d", action->subtype);
+		echo.D("subtype = %d", action->subtype);
 	}
 	if (cv_enabled(action->tods)) {
-		echo.d("tods = %d", action->tods);
+		echo.D("tods = %d", action->tods);
 	}
 	if (cv_enabled(action->fromds)) {
-		echo.d("fromds = %d", action->fromds);
+		echo.D("fromds = %d", action->fromds);
 	}
 	if (cv_enabled(action->addr_count)) {
-		echo.d("addr_count = %d", action->addr_count);
+		echo.D("addr_count = %d", action->addr_count);
 		switch (action->addr_count) {
 		case 1:
-			echo.d("addr1 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr1));
+			echo.D("addr1 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr1));
 		case 2:
-			echo.d("addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr2));
+			echo.D("addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr2));
 		case 3:
-			echo.d("addr3 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr3));
+			echo.D("addr3 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr3));
 		case 4:
-			echo.d("addr4 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr4));
+			echo.D("addr4 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr4));
 			break;
 		}
 	}
 	else {
 		if (cv_enabled(action->any_addr)) {
-			echo.d("any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->any_addr));
+			echo.D("any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->any_addr));
 		}
 		else {
 			if (cv_enabled(action->ap_addr)) {
-				echo.d("ap_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->ap_addr));
+				echo.D("ap_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->ap_addr));
 			}
 			if (cv_enabled(action->st_addr)) {
-				echo.d("st_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->st_addr));
+				echo.D("st_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->st_addr));
 			}
 		}
 	}
+	echo.D("------------------------------------------");
 }
 
 void debug_config(Config_t *config)
@@ -246,13 +260,16 @@ void debug_config(Config_t *config)
 	Action_t *action;
 
 	if (!config) return;
-	echo.d("config = %s\n", config->name);
-	echo.d("version = %u\n", config->version);
+
+	echo.D("[config debug] ==============================");
+	echo.D("config = %s", config->name);
+	echo.D("version = %u", config->version);
 	action = config->action;
 	while (action) {
 		debug_action(action);
 		action = action->next;
 	}
+	echo.D("==============================================");
 }
 
 Action_t *get_max_dwell(Config_t *config)
