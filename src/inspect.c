@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 
 	init_modules(&mopt_list);
 
-	Config_t *config = do_parser(mopt_list.parser->name);
+	Config_t *config = do_parser_modules(mopt_list.parser->name);
 	if (!config) {
 		echo.f("error parsing for %s", mopt_list.parser->name);
 	} else {

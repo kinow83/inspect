@@ -15,7 +15,6 @@
 
 
 typedef struct Module_do_chain_t {
-	Parser_module_t *parser;
 	RTX_module_t *rtx;
 	Match_module_t *match;
 	Output_module_t *output;

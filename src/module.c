@@ -12,6 +12,7 @@
 #include "alloc.h"
 
 
+
 Module_do_chain_t *new_module_do_chain(const Module_do_chain_t *mod)
 {
 	Module_do_chain_t *head;
@@ -19,7 +20,6 @@ Module_do_chain_t *new_module_do_chain(const Module_do_chain_t *mod)
 	head = alloc_sizeof(Module_do_chain_t);
 	head->match = mod->match;
 	head->output = mod->output;
-	head->parser = mod->parser;
 	head->rtx = mod->rtx;
 	head->next = NULL;
 

@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "format.h"
-#include "parser.h"
 #include "log.h"
 #include "alloc.h"
 #include "resource.h"
+#include "parser.h"
+
 
 static Parser_module_t *ParserModules;
+
 
 #if 0
 Parser_module_t *get_parsermodules(void)
@@ -73,7 +75,7 @@ void free_parser_modules(Parser_module_t *mod)
 /*
  * load config by module name.
  */
-Config_t *do_parser(const char *parser_name)
+Config_t *do_parser_modules(const char *parser_name)
 {
 	Parser_module_t *idx;
 	Parser_operations_t *op;
