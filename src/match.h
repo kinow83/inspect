@@ -20,12 +20,13 @@ typedef struct Match_module_t {
 } Match_module_t;
 
 
-void init_match_modules(Module_option_t *mopt);
+void init_match_modules(Module_option_t *);
 Action_t *do_match(Config_t *, u8 *, size_t, struct rx_info *);
+Action_t *do_match_by_name(Config_t *, const char *, u8 *, size_t, struct rx_info *);
 void finish_match_modules(void);
 void register_match_module(const char *, Match_operations_t *);
 void setup_match_modules(void);
-void free_match_moduels(Match_module_t *mod);
+void free_match_moduels(Match_module_t *);
 void usage_match_module(void);
 
 #endif

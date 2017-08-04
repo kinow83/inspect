@@ -86,6 +86,24 @@ Action_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_inf
 	return NULL;
 }
 
+Action_t *do_match_by_name(Config_t *config,
+		const char *name, u8 *h80211, size_t h80211len, struct rx_info *ri)
+{
+	Match_module_t *idx;
+	Action_t *matched;
+
+	idx = MatchModules;
+	while (idx) {
+		if ((idx->enable == true) &&
+				!strcasecmp(name, idx->match_name)) {
+			matched = idx->op.do_match(config, h80211, h80211len, ri);
+			return matched;
+		}
+		idx = idx->next;
+	}
+	return NULL;
+}
+
 void register_match_module(const char *match_name, Match_operations_t *op)
 {
 	Match_module_t *idx;

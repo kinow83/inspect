@@ -3,39 +3,42 @@
 	<name>test config</name>
 
 	<action>
-		<no>3</no>
+		<id>1</id>
 		<enable>1</enable>
 		<name>test3</name>
-		<dwell>300</dwell>
+		<interval>300</interval>
 		<channel>3</channel>
+
+		<shooter>
+			<name>shooter #1</name>
+			<type>0</type>
+			<subtype>7</subtype>
+			<ap_addr>11:22:33:44:55:66</ap_addr>
+			<tags>
+				<tag id="0" len="9" type="string" data="kaka_ssid" />
+				<tag id="1" len="4" type="hex" data="3048606c" />
+			</tags>
+		</shooter>
+
+		<capture>
+			<id>1</id>
+			<name>capture #1</name>
+			<type>0</type>
+			<subtype>4</subtype>
+			<ap_addr>11:22:33:44:55:66</ap_addr>
+		</capture>
+
+		<capture>
+			<id>2</id>
+			<name>capture #2</name>
+					:
+					:
+		</capture>
 	</action>
 
-
-	<action>
-		<no>1</no>
-		<enable>1</enable>
-		<name>test1</name>
-		<dwell>100</dwell>
-		<channel>1</channel>
+	<action id="2">
+			:
+			:
 	</action>
-
-	<action>
-		<no>4</no>
-		<enable>1</enable>
-		<name>test4</name>
-		<dwell>400</dwell>
-		<channel>4</channel>
-	</action>
-
-
-	<action>
-		<no>2</no>
-		<enable>0</enable>
-		<name>test2</name>
-		<dwell>200</dwell>
-		<channel>2</channel>
-	</action>
-
-
 
 </config>

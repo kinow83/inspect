@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "strings.h"
 #include "format.h"
 #include "log.h"
 #include "alloc.h"
@@ -53,7 +54,7 @@ void finish_output_modules(void)
 /*
  * run all output in output-modules
  */
-void do_output(Action_t *action, Output_data_t *data)
+void do_output(Action_t *action, void *data)
 {
 	Output_module_t *idx;
 
@@ -61,6 +62,21 @@ void do_output(Action_t *action, Output_data_t *data)
 	while (idx) {
 		if(idx->enable == true) {
 			idx->op.do_output(action, data);
+		}
+		idx = idx->next;
+	}
+}
+
+void do_output_by_name(Action_t *action, const char *name, void *data)
+{
+	Output_module_t *idx;
+
+	idx = OutputModules;
+	while (idx) {
+		if((idx->enable == true) &&
+				!(strcasecmp(name, idx->output_name))) {
+			idx->op.do_output(action, data);
+			break;
 		}
 		idx = idx->next;
 	}
@@ -131,14 +147,12 @@ void usage_output_module(void)
 }
 
 
-extern void setup_xml_output_module(void);
-//extern void setup_socket_output_module();
-//extern void setup_syslog_output_module();
+extern void setup_wifi_xml_output_module(void);
+extern void setup_error_output_module(void);
 
 void setup_output_modules(void)
 {
-	setup_xml_output_module();
-//	setup_socket_output_module();
-//	setup_syslog_output_module();
+	setup_wifi_xml_output_module();
+	setup_error_output_module();
 }
 

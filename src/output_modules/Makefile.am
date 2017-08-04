@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 
 noinst_LIBRARIES = liboutput.a
 
-liboutput_a_SOURCES = xml_output.c
+liboutput_a_SOURCES = wifi_xml_output.c error_output.c
 
 #LDADD = ../ezxml/libezxml.a
 

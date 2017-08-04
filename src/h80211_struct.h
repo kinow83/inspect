@@ -677,7 +677,9 @@ typedef struct h80211_mgmt_t {
 			u8 order:1;
 		} STRUCT_PACKED flags;
 	} STRUCT_PACKED fc;
+
 	le16 duration;
+
 	struct {
 		union {
 			struct {
@@ -692,7 +694,9 @@ typedef struct h80211_mgmt_t {
 			} STRUCT_PACKED ad;
 		} u;
 	} STRUCT_PACKED addr;
+
 	h80211_fragseq_t fragseq;
+
 	union {
 		struct {
 			ull timestamp;             // 8 byte

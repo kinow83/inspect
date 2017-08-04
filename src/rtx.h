@@ -30,6 +30,7 @@ void init_rtx_modules(Module_option_t *);
 void finish_rtx_modules(void);
 void free_rtx_modules(RTX_module_t *);
 void do_rtx_modules(Config_t *);
+void do_rtx_modules_by_name(Config_t *, const char *);
 void register_rtx_module(const char *, RTX_operations_t *);
 void setup_rtx_modules(void);
 void usage_rts_module(void);

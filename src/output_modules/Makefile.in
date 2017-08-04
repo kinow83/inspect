@@ -106,7 +106,8 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 liboutput_a_AR = $(AR) $(ARFLAGS)
 liboutput_a_LIBADD =
-am_liboutput_a_OBJECTS = xml_output.$(OBJEXT)
+am_liboutput_a_OBJECTS = wifi_xml_output.$(OBJEXT) \
+	error_output.$(OBJEXT)
 liboutput_a_OBJECTS = $(am_liboutput_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -301,7 +302,7 @@ top_srcdir = @top_srcdir@
 #
 AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = liboutput.a
-liboutput_a_SOURCES = xml_output.c
+liboutput_a_SOURCES = wifi_xml_output.c error_output.c
 
 #LDADD = ../ezxml/libezxml.a
 AM_CPPFLAGS = -I../

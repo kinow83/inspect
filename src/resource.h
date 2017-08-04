@@ -59,12 +59,37 @@ size_t num_module_option(Module_option_t *mopt);
 /*
  * 802.11 Information Element.
  */
+enum {
+	TAG_TYPE_STR = 0,
+	TAG_TYPE_HEX = 1,
+};
 typedef struct Tag_t {
-	u8 tag;
+	u8 id;
 	u8 len;
+	u8 type;
 	u8 *data;
 	struct Tag_t *next;
 } Tag_t;
+
+typedef struct Action_details_t {
+	u32 id;
+	cv_def(protect, u8);
+	cv_def(duration, u16);   // duration
+	cv_def(version, u8);     // 802.11 version
+	cv_def(type, u8);        // frame type
+	cv_def(subtype, u8);     // frame subtype
+	cv_def(tods, u8);        // tods
+	cv_def(fromds, u8);      // fromds
+	cv_def(addr1, mac_t);    // mac address1
+	cv_def(addr2, mac_t);    // mac address2
+	cv_def(addr3, mac_t);    // mac address3
+	cv_def(addr4, mac_t);    // mac address4
+	cv_def(ap_addr, mac_t);  // AP mac address (aka. BSSID)
+	cv_def(st_addr, mac_t);  // ST mac address (station)
+	cv_def(any_addr, mac_t); // ANY mac address (any address capture)
+	struct Tag_t *tags;
+	struct Action_details_t *next;
+} Action_details_t;
 
 /*
  * shooter or capture config.
@@ -73,41 +98,34 @@ typedef struct Tag_t {
 typedef struct Config_t Config_t;
 typedef struct Action_t {
 	Config_t *config;
-	u32 no;				// sequence number
+	u32 id; // sequence number
 	u8 enable;
 	char *name;
 	u8 channel;
-	u32 dwell;
-	cv_def(version, u8);   // 802.11 version
-	cv_def(type, u8);      // frame type
-	cv_def(subtype, u8);   // frame subtype
-	cv_def(tods, u8);      // tods
-	cv_def(fromds, u8);    // fromds
-	cv_def(addr_count, u8);// mac address count
-	cv_def(addr1, mac_t);       // mac address1
-	cv_def(addr2, mac_t);       // mac address2
-	cv_def(addr3, mac_t);       // mac address3
-	cv_def(addr4, mac_t);       // mac address4
-	cv_def(ap_addr, mac_t);     // AP mac address (aka. BSSID)
-	cv_def(st_addr, mac_t);		// ST mac address (station)
-	cv_def(any_addr, mac_t);	// ANY mac address (any address capture)
-	struct Tag_t *tags;
+	u32 interval;
 	struct Action_t *next;
+
+	Action_details_t *shooter;
+	Action_details_t *capture;
 } Action_t;
 
 typedef struct Config_t  {
 	u32 version;  // config version
 	char *name;
-	u32 extra_dwell;
+	u32 ext_interval;
 	struct wif *capture_wif;
 	struct wif *shooter_wif;
 	struct Action_t *action;
 } Config_t;
 
 void free_tags(Tag_t *tag);
+void free_action_details(Action_details_t *detail);
 void free_actions(Action_t *action);
 void free_config(Config_t *config);
-void debug_action(Action_t *action);
+
+void debug_tags(Tag_t *tag);
+void debug_action_details(Action_details_t *detail);
+void debug_actions(Action_t *action);
 void debug_config(Config_t *config);
 Action_t *get_max_dwell(Config_t *config);
 void sort_actions(Action_t **action);

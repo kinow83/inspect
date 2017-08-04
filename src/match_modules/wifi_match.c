@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "format.h"
 #include "match.h"
 #include "log.h"
@@ -8,8 +9,12 @@
 #include "h80211_struct.h"
 
 static const char *wlan_fc_type[] = {
-		"mgnt", "ctrl", "data",
+		"mgnt",
+		"ctrl",
+		"data",
 };
+
+
 
 static void match_debug(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
 {
@@ -19,23 +24,46 @@ static void match_debug(Action_t *action, uint8_t *h80211, size_t h80211len, str
 	h = (h80211_hdr_t  *)h80211;
 	m = (h80211_mgmt_t *)h80211;
 
-	echo.d("%s", wlan_fc_type[h->fc.type]);
-	switch (h->fc.type) {
-	case WLAN_FC_TYPE_MGMT:
-		break;
-	case WLAN_FC_TYPE_CTRL:
-		break;
-	case WLAN_FC_TYPE_DATA:
-		break;
-	default:
-		break;
-	}
+
 }
 
-static int match_test(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
+static bool match_test_mgnt(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
 {
-	match_debug(action, h80211, h80211len, ri);
-	return 0;
+
+}
+
+static bool match_test_ctrl(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
+{
+
+}
+
+static bool match_test_data(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
+{
+
+}
+
+static bool match_test(Action_t *action, uint8_t *h80211, size_t h80211len, struct rx_info *ri)
+{
+	bool matched = false;
+	h80211_hdr_t  *h = (h80211_hdr_t  *)h80211;
+	h80211_mgmt_t *m = (h80211_mgmt_t *)h80211;
+
+	switch (h->fc.type) {
+	case WLAN_FC_TYPE_MGMT:
+		matched = match_test_mgnt(action, h80211, h80211len, ri);
+		break;
+	case WLAN_FC_TYPE_CTRL:
+		matched = match_test_mgnt(action, h80211, h80211len, ri);
+		break;
+	case WLAN_FC_TYPE_DATA:
+		matched = match_test_mgnt(action, h80211, h80211len, ri);
+		break;
+	default:
+
+		break;
+	}
+
+	return matched;
 }
 
 

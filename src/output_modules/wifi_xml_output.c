@@ -11,15 +11,21 @@
 #include "convert.h"
 #include "strings.h"
 
+
 static u32 xid;
 static char *prefix;
 
-static void do_xml_output(Action_t *action, Output_data_t *data)
+static void do_wifi_xml_output(Action_t *action, void *output_data)
 {
 	ezxml_t xml;
 	ezxml_t child;
-	h80211_hdr_t *h = (h80211_hdr_t *)data->h80211;
-	h80211_mgmt_t *m = (h80211_mgmt_t *)data->h80211;
+	Output_wifi_data_t *data;
+	h80211_hdr_t *h;
+	h80211_mgmt_t *m;
+
+	data = (Output_wifi_data_t *)output_data;
+	h = (h80211_hdr_t *)data->h80211;
+	m = (h80211_mgmt_t *)h;
 
 	xid++;
 
@@ -49,10 +55,9 @@ static void do_xml_output(Action_t *action, Output_data_t *data)
 			GET_WLAN_SUBTYPE(h) == WLAN_FC_STYPE_DEAUTH) {
 		ezxml_set_attr(child, "deauth",   new_itoa(ntohs(m->u.deauth.reason), 10));
 	}
-
 }
 
-static void init_xml_output(char *options)
+static void init_wifi_xml_output(char *options)
 {
 	char **chunk, **field;
 	int nchunk, nfield;
@@ -79,31 +84,33 @@ static void init_xml_output(char *options)
 		echo.f("error xml_output: empty prefix: %s", options);
 	}
 
+	xid = 0;
+
 	echo.i("[xml output options]");
 	echo.i("prefix = %s", prefix);
 }
 
-static void finish_xml_output(void)
+static void finish_wifi_xml_output(void)
 {
-	echo.d("finish_xml_output");
-
 	if (prefix) {
 		free(prefix);
+		prefix = NULL;
 	}
+	xid = 0;
 }
 
-static const char *usage_xml_output(void)
+static const char *usage_wifi_xml_output(void)
 {
 	return "xml:prefix=<prefix of output file>";
 }
 
-void setup_xml_output_module(void)
+void setup_wifi_xml_output_module(void)
 {
 	Output_operations_t op = {
-			.init_output   = init_xml_output,
-			.do_output     = do_xml_output,
-			.finish_output = finish_xml_output,
-			.usage_output  = usage_xml_output,
+			.init_output   = init_wifi_xml_output,
+			.do_output     = do_wifi_xml_output,
+			.finish_output = finish_wifi_xml_output,
+			.usage_output  = usage_wifi_xml_output,
 	};
 
 	register_output_module("xml", &op);

@@ -119,18 +119,39 @@ void free_tags(Tag_t *tag)
 	}
 }
 
+void free_action_details(Action_details_t *detail)
+{
+	Action_details_t *tmp;
+
+	if (!detail) return;
+
+	while (detail) {
+		tmp = detail->next;
+		if (detail->tags) {
+			free_tags(detail->tags);
+		}
+		free(detail);
+
+		detail = tmp;
+	}
+}
+
 void free_actions(Action_t *action)
 {
 	Action_t *tmp;
 
 	if (!action) return;
+
 	while (action) {
 		tmp = action->next;
 		if (action->name) {
 			free(action->name);
 		}
-		if (action->tags) {
-			free_tags(action->tags);
+		if (action->shooter) {
+			free_action_details(action->shooter);
+		}
+		if (action->capture) {
+			free_action_details(action->capture);
 		}
 		free(action);
 
@@ -141,6 +162,7 @@ void free_actions(Action_t *action)
 void free_config(Config_t *config)
 {
 	if (!config) return;
+
 	free_actions(config->action);
 	free(config);
 }
@@ -159,8 +181,8 @@ static Action_t *extract_max_no_action(Action_t **first)
 	// find the max number action.
 	tmp = *first;
 	while (tmp) {
-		if (tmp->no >= max) {
-			max = tmp->no;
+		if (tmp->id >= max) {
+			max = tmp->id;
 		}
 		tmp = tmp->next;
 	}
@@ -169,7 +191,7 @@ static Action_t *extract_max_no_action(Action_t **first)
 	prev = NULL;
 	tmp = *first;
 	while (tmp) {
-		if (tmp->no == max) {
+		if (tmp->id == max) {
 			if (!prev) {
 				*first = tmp->next;
 			} else {
@@ -207,53 +229,100 @@ void sort_actions(Action_t **action)
 	*action = order;
 }
 
-void debug_action(Action_t *action)
+void debug_tags(Tag_t *tag)
 {
-	echo.D("[action debug] ---------------------------");
-	echo.D("no = %d", action->no);
-	echo.D("action = %s", action->name);
-	echo.D("channel = %d", action->channel);
-	echo.D("dwell = %d", action->dwell);
+	const char *type = "str";
+	int len, n = 0, i;
+	char *buf;
 
-	if (cv_enabled(action->type)) {
-		echo.D("type = %d", action->type);
-	}
-	if (cv_enabled(action->subtype)) {
-		echo.D("subtype = %d", action->subtype);
-	}
-	if (cv_enabled(action->tods)) {
-		echo.D("tods = %d", action->tods);
-	}
-	if (cv_enabled(action->fromds)) {
-		echo.D("fromds = %d", action->fromds);
-	}
-	if (cv_enabled(action->addr_count)) {
-		echo.D("addr_count = %d", action->addr_count);
-		switch (action->addr_count) {
-		case 1:
-			echo.D("addr1 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr1));
-		case 2:
-			echo.D("addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr2));
-		case 3:
-			echo.D("addr3 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr3));
-		case 4:
-			echo.D("addr4 = "_MAC_FMT_, _MAC_FMT_FILL_(action->addr4));
-			break;
+	if (tag->type == TAG_TYPE_HEX) {
+		type = "hex";
+		len = (tag->len * 2);
+		buf = alloc_type(char*, len+1);
+		for (i = 0; i < len; i++) {
+			n += snprintf(buf + n, len - n, "%02x", tag->data[i]);
 		}
 	}
-	else {
-		if (cv_enabled(action->any_addr)) {
-			echo.D("any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->any_addr));
-		}
-		else {
-			if (cv_enabled(action->ap_addr)) {
-				echo.D("ap_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->ap_addr));
-			}
-			if (cv_enabled(action->st_addr)) {
-				echo.D("st_addr = "_MAC_FMT_, _MAC_FMT_FILL_(action->st_addr));
-			}
-		}
+	else { // str
+		len = tag->len;
+		buf = alloc_type(char*, len+1);
+		strncpy(buf, tag->data, len);
 	}
+
+	echo.D("\t\t\t id=%d, len=%d, type=%s, data=%s",
+			tag->id, tag->len, type, buf);
+}
+
+void debug_action_details(Action_details_t *detail)
+{
+	Tag_t *tag;
+
+	echo.D("\t\t id = %d", detail->id);
+
+	if (cv_enabled(detail->type)) {
+		echo.D("\t\t type = %d", detail->type);
+	}
+	if (cv_enabled(detail->subtype)) {
+		echo.D("\t\t subtype = %d", detail->subtype);
+	}
+	if (cv_enabled(detail->tods)) {
+		echo.D("\t\t tods = %d", detail->tods);
+	}
+	if (cv_enabled(detail->fromds)) {
+		echo.D("\t\t fromds = %d", detail->fromds);
+	}
+	if (cv_enabled(detail->addr1)) {
+		echo.D("\t\t addr1 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr1));
+	}
+	if (cv_enabled(detail->addr2)) {
+		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr2));
+	}
+	if (cv_enabled(detail->addr3)) {
+		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr3));
+	}
+	if (cv_enabled(detail->addr4)) {
+		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr4));
+	}
+	if (cv_enabled(detail->any_addr)) {
+		echo.D("\t\t any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->any_addr));
+	}
+	if (cv_enabled(detail->ap_addr)) {
+		echo.D("\t\t ap_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->ap_addr));
+	}
+	if (cv_enabled(detail->st_addr)) {
+		echo.D("\t\t st_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->st_addr));
+	}
+
+	tag = detail->tags;
+	while (tag) {
+		debug_tags(tag);
+		tag = tag->next;
+	}
+}
+
+void debug_actions(Action_t *action)
+{
+	Action_details_t *detail;
+
+	echo.D("\t [action] id = %d ---------------------------", action->id);
+	echo.D("\t name = %s", action->name);
+	echo.D("\t interval = %d", action->interval);
+	echo.D("\t channel = %d", action->channel);
+
+	detail = action->shooter;
+	while (detail) {
+		echo.D("\t [shooter]");
+		debug_action_details(detail);
+		detail = detail->next;
+	}
+
+	detail = action->capture;
+	while (detail) {
+		echo.D("\t [capture]");
+		debug_action_details(detail);
+		detail = detail->next;
+	}
+
 	echo.D("------------------------------------------");
 }
 
@@ -268,13 +337,13 @@ void debug_config(Config_t *config)
 	echo.D("version = %u", config->version);
 	action = config->action;
 	while (action) {
-		debug_action(action);
+		debug_actions(action);
 		action = action->next;
 	}
 	echo.D("==============================================");
 }
 
-Action_t *get_max_dwell(Config_t *config)
+Action_t *get_max_interval(Config_t *config)
 {
 	u32 max = 0;
 	Action_t *action;
@@ -283,15 +352,15 @@ Action_t *get_max_dwell(Config_t *config)
 
 	action = config->action;
 	while (action) {
-		if (max < action->dwell) {
-			max = action->dwell;
+		if (max < action->interval) {
+			max = action->interval;
 		}
 		action = action->next;
 	}
 
 	action = config->action;
 	while (action) {
-		if (max == action->dwell) {
+		if (max == action->interval) {
 			return action;
 		}
 		action = action->next;

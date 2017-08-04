@@ -159,6 +159,7 @@ void sighandler(int signum)
 
 int main(int argc, char **argv)
 {
+	Config_t *config;
 	int opt;
 	Module_option_list_t mopt_list = {NULL,};
 
@@ -192,25 +193,26 @@ int main(int argc, char **argv)
 	}
 
 	if (num_module_option(mopt_list.parser) != 1) {
-		echo.OUT("MUST set parser module only one: -p");
-		exit(1);
+		echo.F("missing option: -p");
 	}
 
+	// initialize modules
 	init_modules(&mopt_list);
 
-	Config_t *config = do_parser_modules(mopt_list.parser->name);
+	config = do_parser_modules(mopt_list.parser->name);
 	if (!config) {
 		echo.f("error parsing for %s", mopt_list.parser->name);
 	} else {
 		debug_config(config);
 	}
 
-
+	// run rtx modules
 	do_rtx_modules(config);
 
 
 
 done:
+	free_config(config);
 	finish_modules();
 	free_modules();
 	free_module_option_list(&mopt_list);

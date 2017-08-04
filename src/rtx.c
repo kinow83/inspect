@@ -85,6 +85,21 @@ void do_rtx_modules(Config_t *config)
 	}
 }
 
+void do_rtx_modules_by_name(Config_t *config, const char *name)
+{
+	RTX_module_t *idx;
+
+	idx = RTXModules;
+	while (idx) {
+		if ((idx->enable == true) &&
+				!strcasecmp(name, idx->rtx_name)) {
+			idx->op.do_rtx(config);
+			return;
+		}
+		idx = idx->next;
+	}
+}
+
 void register_rtx_module(const char *rtx_name, RTX_operations_t *op)
 {
 	RTX_module_t *idx;
