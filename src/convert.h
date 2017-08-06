@@ -11,11 +11,13 @@
 #include <stdint.h>
 #include <sys/time.h>
 #include <stdbool.h>
-
+#include "types.h"
 
 void mac2str(unsigned char* mac, char *str, size_t strlen);
 bool str2mac(char *str, unsigned char *mac);
 char *new_macstr(unsigned char *mac);
+u8 hex2bin(const char *str);
+int hex2binarray(const char *str, unsigned char *bin, int binlen);
 int hexchar2int(unsigned char c);
 int hex2int(char *s, int len);
 long usec2msec(struct timeval *tv);

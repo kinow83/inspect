@@ -41,6 +41,25 @@ char *new_macstr(unsigned char *mac)
     return str;
 }
 
+u8 hex2bin(const char *str)
+{
+	u32 bin;
+	sscanf(str, "%02x", &bin);
+	return bin;
+}
+
+int hex2binarray(const char *str, unsigned char *bin, int binlen)
+{
+	int i;
+	int n;
+
+	n = strlen(str) / 2;
+	for (i = 0; i < binlen && i < n; i++) {
+		bin[i] = hex2bin(str + (2 * i));
+	}
+	return i;
+}
+
 /* Return -1 if it's not an hex value and return its value when it's a hex value */
 int hexchar2int(unsigned char c)
 {

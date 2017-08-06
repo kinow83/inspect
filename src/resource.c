@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "format.h"
 #include "resource.h"
 #include "log.h"
@@ -69,16 +70,50 @@ const char* h80211_data_string[] = {
 	"qos_ack",
 };
 
-char *get_h80211_type_names(u8 type, u8 subtype)
+void debug_h80211_type_names(void)
+{
+	int i;
+
+	echo.out("<<<<< frame type description >>>>>");
+
+	echo.out("[%s: 0]", h80211_frame_string[0]);
+	{
+		for (i=0; i<sizeof(h80211_mgnt_string)/sizeof(char *); i++) {
+			if (h80211_mgnt_string[i][0]) {
+				echo.out("\t %2d: %s", i, h80211_mgnt_string[i]);
+			}
+		}
+	}
+
+	echo.out("[%s: 1]", h80211_frame_string[1]);
+	{
+		for (i=0; i<sizeof(h80211_ctrl_string)/sizeof(char *); i++) {
+			if (h80211_ctrl_string[i][0]) {
+				echo.out("\t %2d: %s", i, h80211_ctrl_string[i]);
+			}
+		}
+	}
+
+	echo.out("[%s: 2]", h80211_frame_string[2]);
+	{
+		for (i=0; i<sizeof(h80211_data_string)/sizeof(char *); i++) {
+			if (h80211_data_string[i][0]) {
+				echo.out("\t %2d: %s", i, h80211_data_string[i]);
+			}
+		}
+	}
+}
+
+const char *get_h80211_type_names(u8 type, u8 subtype)
 {
 	switch (type) {
 		case WLAN_FC_TYPE_MGMT:
 			return h80211_mgnt_string[subtype];
 			break;
-		case WLAN_FC_TYPE_MGMT:
+		case WLAN_FC_TYPE_CTRL:
 			return h80211_ctrl_string[subtype];
 			break;
-		case WLAN_FC_TYPE_MGMT:
+		case WLAN_FC_TYPE_DATA:
 			return h80211_data_string[subtype];
 			break;
 	}
@@ -161,6 +196,7 @@ void free_module_option(Module_option_t *mopt)
 	cur = mopt;
 	while (cur) {
 		tmp = cur->next;
+
 		if (cur->name) {
 			free(cur->name);
 		}
@@ -180,6 +216,7 @@ void free_tags(Tag_t *tag)
 	if (!tag) return;
 	while (tag) {
 		tmp = tag->next;
+
 		if (tag->data) {
 			free(tag->data);
 		}
@@ -197,6 +234,10 @@ void free_action_details(Action_details_t *detail)
 
 	while (detail) {
 		tmp = detail->next;
+
+		if (detail->name) {
+			free(detail->name);
+		}
 		if (detail->tags) {
 			free_tags(detail->tags);
 		}
@@ -214,6 +255,7 @@ void free_actions(Action_t *action)
 
 	while (action) {
 		tmp = action->next;
+
 		if (action->name) {
 			free(action->name);
 		}
@@ -236,7 +278,6 @@ void free_config(Config_t *config)
 	free_actions(config->action);
 	free(config);
 }
-
 
 static Action_t *extract_max_no_action(Action_t **first)
 {
@@ -327,13 +368,26 @@ void debug_action_details(Action_details_t *detail)
 {
 	Tag_t *tag;
 
-	echo.D("\t\t id = %d", detail->id);
-
+	echo.D("\t\t id = %d (%s)", detail->id, detail->name);
+	if (cv_enabled(detail->version)) {
+		echo.D("\t\t version = %d", detail->version);
+	}
 	if (cv_enabled(detail->type)) {
 		echo.D("\t\t type = %d", detail->type);
 	}
 	if (cv_enabled(detail->subtype)) {
-		echo.D("\t\t subtype = %d", detail->subtype);
+		echo.D("\t\t subtype = %d (%s)",
+				detail->subtype,
+				get_h80211_type_names(detail->type, detail->subtype));
+	}
+	if (cv_enabled(detail->protect)) {
+		echo.D("\t\t protect = %d", detail->protect);
+	}
+	if (cv_enabled(detail->duration)) {
+		echo.D("\t\t duration = %d", detail->duration);
+	}
+	if (cv_enabled(detail->ibss)) {
+		echo.D("\t\t ibss = %d", detail->ibss);
 	}
 	if (cv_enabled(detail->tods)) {
 		echo.D("\t\t tods = %d", detail->tods);
@@ -475,7 +529,7 @@ int get_shooter_count(Action_t *action)
 }
 
 
-bool verify_capture_action_detail(Action_details_t *action)
+static bool verify_capture_action_detail(Action_details_t *action)
 {
 
 	return true;
@@ -591,3 +645,97 @@ bool verify_config(Config_t *config)
 
 	return true;
 }
+
+Tag_t *find_tag(Tag_t *first, u8 id)
+{
+	Tag_t *cur = first;
+	while (cur) {
+		if (cur->id == id) {
+			return cur;
+		}
+		cur = cur->next;
+	}
+	return NULL;
+}
+
+Tag_t *find_tag_vendor(Tag_t *first, u8 *oui)
+{
+	Tag_t *cur = first;
+	while (cur) {
+		if (cur->id == 221) {
+			if (cur->data && oui_cmp(oui, cur->data)) {
+				return cur;
+			}
+		}
+		cur = cur->next;
+	}
+	return NULL;
+}
+
+Tag_t *last_tag(Tag_t *first)
+{
+	Tag_t *cur = first;
+
+	if (!cur) return NULL;
+	while (cur) {
+		if (!cur->next) {
+			break;
+		}
+		cur = cur->next;
+	}
+	return cur;
+}
+
+Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 *data)
+{
+	Tag_t *tag;
+
+	tag = alloc_sizeof(Tag_t);
+	tag->id = id;
+	tag->len = len;
+	if (len == 0) {
+		tag->data = NULL;
+	} else {
+		tag->data = alloc_type(u8, len + 1);
+		memcpy(tag->data, data, len);
+	}
+	if (prev) {
+		prev->next = tag;
+	}
+	tag->next = NULL;
+	return tag;
+}
+
+Tag_t *new_sort_tags(Tag_t *first)
+{
+	Tag_t *sort, *cur, *find;
+	int id;
+	char ids[256] = {0, };
+
+	if (!first) return NULL;
+
+	cur = first;
+	while (cur) {
+		if (ids[cur->id] == 1) {
+			echo.f("sort_tags: duplicate tag id: '%d'", cur->id);
+		}
+		ids[cur->id] = 1;
+		cur = cur->next;
+	}
+
+	cur = NULL;
+	for (id = 0; id < 256; id++) {
+		if (ids[id] == 1) {
+			find = find_tag(first, id);
+			assert(find != NULL);
+			cur = new_tag(cur, find->id, find->len, find->data);
+
+			if (!sort) {
+				sort = cur;
+			}
+		}
+	}
+	free_tags(first);
+	return sort;
+}
+

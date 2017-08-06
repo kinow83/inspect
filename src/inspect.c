@@ -180,7 +180,8 @@ int main(int argc, char **argv)
 			mopt_list.match = new_module_option(optarg);
 			break;
 		case 'v':
-			echo.i("version: %d", CUR_VERSION);
+			echo.out("version: %d", CUR_VERSION);
+			debug_h80211_type_names();
 			break;
 		case 'h':
 		case '?':
@@ -193,7 +194,8 @@ int main(int argc, char **argv)
 	}
 
 	if (get_module_option_count(mopt_list.parser) != 1) {
-		echo.F("missing option: -p");
+		echo.OUT("missing option: -p");
+		exit(1);
 	}
 
 	// initialize modules
@@ -201,7 +203,8 @@ int main(int argc, char **argv)
 
 	config = do_parser_modules(mopt_list.parser->name);
 	if (!config) {
-		echo.f("error parsing for %s", mopt_list.parser->name);
+		echo.OUT("error parsing for %s", mopt_list.parser->name);
+		exit(1);
 	} else {
 		debug_config(config);
 	}

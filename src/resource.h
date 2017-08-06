@@ -32,7 +32,8 @@ void free_module_option(Module_option_t *);
 Module_option_t* new_module_option(const char *args);
 size_t get_module_option_count(Module_option_t *mopt);
 
-char *get_h80211_type_names(u8 type, u8 subtype);
+const char *get_h80211_type_names(u8 type, u8 subtype);
+void debug_h80211_type_names(void);
 
 /*
  * cv_def: Config Value Define.
@@ -141,5 +142,14 @@ Action_t *get_max_interval(Config_t *config);
 int get_action_count(Config_t *config);
 int get_capture_count(Action_t *action);
 int get_shooter_count(Action_t *action);
+
+bool verify_action(Action_t *action);
+bool verify_config(Config_t *config);
+
+Tag_t *find_tag(Tag_t *first, u8 id);
+Tag_t *find_tag_vendor(Tag_t *first, u8 *oui);
+Tag_t *last_tag(Tag_t *first);
+Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 *data);
+Tag_t *new_sort_tags(Tag_t *first);
 
 #endif /* SRC_RESOURCE_H_ */

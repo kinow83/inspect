@@ -10,27 +10,76 @@
 #include "strings.h"
 #include "h80211_struct.h"
 #include "resource.h"
+#include "convert.h"
 
 /*
 
  */
 static char *xmlfilename;
 
-static Action_details_t *xml_capture_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml)
-{
-
-}
-
-
 static Tag_t *xml_tag_parsing(
 		const char *filename, Action_details_t *detail, ezxml_t xml)
 {
+	Tag_t *tag, *first, *tmp;
+	ezxml_t e;
+	bool hexmode;
+	const char *id, *len, *data, *type;
 
+	first = NULL;
+
+	for (e = ezxml_child(xml, "tag"); e; e = e->next) {
+		id   = ezxml_attr(e, "id");
+		len  = ezxml_attr(e, "len");
+		data = ezxml_attr(e, "data");
+		type = ezxml_attr(e, "type");
+
+		// Default 'string' mode
+		hexmode = 0;
+		if (type && (!strcasecmp(type, "hex"))) {
+			hexmode = 1;
+		}
+
+		if (!id) {
+			echo.f("xml_parer: empty 'id' of tag [detail:%s, action:%s, file:%s]",
+					detail->name, detail->action->name, filename);
+		}
+		if (!len) {
+			echo.f("xml_parer: empty 'len' of tag [tag: %s, detail:%s, action:%s, file:%s]",
+					id, detail->name, detail->action->name, filename);
+		}
+		if (!data) {
+			echo.f("xml_parer: empty 'data' of tag [tag: %s, detail:%s, action:%s, file:%s]",
+					id, detail->name, detail->action->name, filename);
+		}
+
+		tag = alloc_sizeof(Tag_t);
+		tag->id = atoi(id);
+		tag->len = atoi(len);
+		tag->data = alloc_type(u8, tag->len+1);
+		tag->next = NULL;
+
+		if (hexmode) {
+			hex2binarray(data, tag->data, tag->len);
+		} else {
+			strncpy((char *)tag->data, data, tag->len);
+			tag->data[tag->len] = '\0';
+		}
+
+		if (!first) {
+			first = tag;
+		} else {
+			tmp = first;
+			while (tmp->next) {
+				tmp = tmp->next;
+			}
+			tmp->next = tag;
+		}
+	}
+	return first;
 }
 
-static Action_details_t *xml_shooter_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml)
+static Action_details_t *xml_detail_parsing(
+		const char *filename, Action_t *action ,ezxml_t xml, bool check_addr)
 {
 	ezxml_t e;
 	Action_details_t *detail;
@@ -121,65 +170,66 @@ static Action_details_t *xml_shooter_detail_parsing(
 				detail->name, action->name, filename);
 		}
 	}
-	// targter or source mac address
-	{
-		e = ezxml_child(xml, "ap_addr");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->ap_addr)) {
-				echo.f("xml_parer: invalid 'ap_addr' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->ap_addr);
+	// target or source mac address
+	e = ezxml_child(xml, "ap_addr");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->ap_addr)) {
+			echo.f("xml_parer: invalid 'ap_addr' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "st_addr");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->st_addr)) {
-				echo.f("xml_parer: invalid 'st_addr' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->st_addr);
+		cv_enable(detail->ap_addr);
+	}
+	e = ezxml_child(xml, "st_addr");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->st_addr)) {
+			echo.f("xml_parer: invalid 'st_addr' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "any_addr");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->any_addr)) {
-				echo.f("xml_parer: invalid 'any_addr' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->any_addr);
+		cv_enable(detail->st_addr);
+	}
+	e = ezxml_child(xml, "any_addr");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->any_addr)) {
+			echo.f("xml_parer: invalid 'any_addr' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "addr1");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->addr1)) {
-				echo.f("xml_parer: invalid 'addr1' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->addr1);
+		cv_enable(detail->any_addr);
+	}
+	e = ezxml_child(xml, "addr1");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->addr1)) {
+			echo.f("xml_parer: invalid 'addr1' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "addr2");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->addr2)) {
-				echo.f("xml_parer: invalid 'addr2' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->addr2);
+		cv_enable(detail->addr1);
+	}
+	e = ezxml_child(xml, "addr2");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->addr2)) {
+			echo.f("xml_parer: invalid 'addr2' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "addr3");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->addr3)) {
-				echo.f("xml_parer: invalid 'addr3' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->addr3);
+		cv_enable(detail->addr2);
+	}
+	e = ezxml_child(xml, "addr3");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->addr3)) {
+			echo.f("xml_parer: invalid 'addr3' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
-		e = ezxml_child(xml, "addr4");
-		if (e && e->txt) {
-			if (!str2mac(e->txt, detail->addr4)) {
-				echo.f("xml_parer: invalid 'addr4' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			}
-			cv_enable(detail->addr4);
+		cv_enable(detail->addr3);
+	}
+	e = ezxml_child(xml, "addr4");
+	if (e && e->txt) {
+		if (!str2mac(e->txt, detail->addr4)) {
+			echo.f("xml_parer: invalid 'addr4' [detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
 		}
+		cv_enable(detail->addr4);
+	}
 
+	// check address
+	if (check_addr) {
 		switch (detail->type) {
 		case WLAN_FC_TYPE_MGMT:
 			if (cv_enabled(detail->ap_addr) ^ cv_enabled(detail->st_addr)) {
@@ -233,7 +283,7 @@ static Action_details_t *xml_shooter_detail_parsing(
 				}
 			}
 			// check WDS address
-			if (detail.fromds == 1 && detail->tods == 1) {
+			if (detail->fromds == 1 && detail->tods == 1) {
 				if (!cv_enabled(detail->addr1) ||
 						!cv_enabled(detail->addr2) ||
 						!cv_enabled(detail->addr3) ||
@@ -243,7 +293,7 @@ static Action_details_t *xml_shooter_detail_parsing(
 							detail->name, action->name, filename);
 				}
 			}
-			if (detail.fromds == 0 && detail->tods == 0) {
+			if (detail->fromds == 0 && detail->tods == 0) {
 				if (!cv_enabled(detail->addr1) ||
 						!cv_enabled(detail->addr2) ||
 						!cv_enabled(detail->addr3)) {
@@ -255,7 +305,8 @@ static Action_details_t *xml_shooter_detail_parsing(
 			break;
 		}
 	}
-	// protect for fata frame
+
+	// protect for data frame
 	e = ezxml_child(xml, "protect");
 	if (e && e->txt) {
 		detail->protect = atoi(e->txt) == 0 ? 0 : 1;
@@ -289,9 +340,33 @@ static Action_details_t *xml_shooter_detail_parsing(
 		}
 	}
 
-
+	e = ezxml_child(xml, "tags");
+	if (e) {
+		detail->tags = xml_tag_parsing(filename, detail, e);
+		if (detail->tags) {
+			detail->tags = new_sort_tags(detail->tags);
+		} else {
+			echo.f("xml_parer: failed to sort tags "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, filename);
+		}
+	}
 
 	return detail;
+}
+
+static Action_details_t *xml_capture_detail_parsing(
+		const char *filename, Action_t *action ,ezxml_t xml)
+{
+	bool check_addr = false;
+	return xml_detail_parsing(filename, action, xml, check_addr);
+}
+
+static Action_details_t *xml_shooter_detail_parsing(
+		const char *filename, Action_t *action ,ezxml_t xml)
+{
+	bool check_addr = true;
+	return xml_detail_parsing(filename, action, xml, check_addr);
 }
 
 static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
