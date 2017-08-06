@@ -13,9 +13,79 @@
 #include "log.h"
 #include "alloc.h"
 #include "strings.h"
+#include "h80211_struct.h"
 
+static const char* h80211_frame_string[] = {
+	"mgnt",
+	"ctrl",
+	"data",
+};
 
-size_t num_module_option(Module_option_t *mopt)
+static const char* h80211_mgnt_string[] = {
+	"assoc_req",
+	"assoc_resp",
+	"reassoc_req",
+	"reassoc_resp",
+	"probe_req",
+	"probe_resp",
+	"",
+	"",
+	"beacon",
+	"atim",
+	"disassoc",
+	"auth",
+	"deauth",
+	"action",
+};
+
+static const char* h80211_ctrl_string[] = {
+	"","","","","","","","",
+	"block_ack_req",
+	"block_ack",
+	"ps_poll",
+	"rts",
+	"cts",
+	"ack",
+	"cf_end",
+	"cf_end_ack",
+};
+
+const char* h80211_data_string[] = {
+	"data",
+	"data_ack",
+	"data_poll",
+	"data_ack_poll",
+	"null",
+	"ack",
+	"poll",
+	"ack_cf_poll",
+	"qos_data",
+	"qos_data_ack",
+	"qos_data_poll",
+	"qos_data_ack_poll",
+	"qos_null",
+	"reserved"
+	"qos_poll",
+	"qos_ack",
+};
+
+char *get_h80211_type_names(u8 type, u8 subtype)
+{
+	switch (type) {
+		case WLAN_FC_TYPE_MGMT:
+			return h80211_mgnt_string[subtype];
+			break;
+		case WLAN_FC_TYPE_MGMT:
+			return h80211_ctrl_string[subtype];
+			break;
+		case WLAN_FC_TYPE_MGMT:
+			return h80211_data_string[subtype];
+			break;
+	}
+	return "";
+}
+
+size_t get_module_option_count(Module_option_t *mopt)
 {
 	size_t n = 0;
 
@@ -238,14 +308,14 @@ void debug_tags(Tag_t *tag)
 	if (tag->type == TAG_TYPE_HEX) {
 		type = "hex";
 		len = (tag->len * 2);
-		buf = alloc_type(char*, len+1);
+		buf = alloc_type(char, len+1);
 		for (i = 0; i < len; i++) {
 			n += snprintf(buf + n, len - n, "%02x", tag->data[i]);
 		}
 	}
 	else { // str
 		len = tag->len;
-		buf = alloc_type(char*, len+1);
+		buf = alloc_type(char, len+1);
 		strncpy(buf, tag->data, len);
 	}
 
@@ -278,10 +348,10 @@ void debug_action_details(Action_details_t *detail)
 		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr2));
 	}
 	if (cv_enabled(detail->addr3)) {
-		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr3));
+		echo.D("\t\t addr3 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr3));
 	}
 	if (cv_enabled(detail->addr4)) {
-		echo.D("\t\t addr2 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr4));
+		echo.D("\t\t addr4 = "_MAC_FMT_, _MAC_FMT_FILL_(detail->addr4));
 	}
 	if (cv_enabled(detail->any_addr)) {
 		echo.D("\t\t any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->any_addr));
@@ -304,26 +374,25 @@ void debug_actions(Action_t *action)
 {
 	Action_details_t *detail;
 
-	echo.D("\t [action] id = %d ---------------------------", action->id);
+	echo.D("\t ------------------------------------------");
+	echo.D("\t id = %d", action->id);
 	echo.D("\t name = %s", action->name);
 	echo.D("\t interval = %d", action->interval);
 	echo.D("\t channel = %d", action->channel);
 
 	detail = action->shooter;
 	while (detail) {
-		echo.D("\t [shooter]");
+		echo.D("\t [shooter] >>>>>>>>>>>>>>>>>>>>>");
 		debug_action_details(detail);
 		detail = detail->next;
 	}
 
 	detail = action->capture;
 	while (detail) {
-		echo.D("\t [capture]");
+		echo.D("\t [capture] >>>>>>>>>>>>>>>>>>>>>");
 		debug_action_details(detail);
 		detail = detail->next;
 	}
-
-	echo.D("------------------------------------------");
 }
 
 void debug_config(Config_t *config)
@@ -332,7 +401,7 @@ void debug_config(Config_t *config)
 
 	if (!config) return;
 
-	echo.D("[config debug] ==============================");
+	echo.D("[config]======================================");
 	echo.D("config = %s", config->name);
 	echo.D("version = %u", config->version);
 	action = config->action;
@@ -366,4 +435,159 @@ Action_t *get_max_interval(Config_t *config)
 		action = action->next;
 	}
 	return NULL;
+}
+
+
+int get_action_count(Config_t *config)
+{
+	int acount = 0;
+	Action_t *action;
+
+	action = config->action;
+	while (action) {
+		acount++;
+		action = action->next;
+	}
+}
+
+int get_capture_count(Action_t *action)
+{
+	int ccount = 0;
+	Action_details_t *detail;
+
+	detail = action->capture;
+	while (detail) {
+		ccount++;
+		detail = detail->next;
+	}
+}
+
+int get_shooter_count(Action_t *action)
+{
+	int ccount = 0;
+	Action_details_t *detail;
+
+	detail = action->shooter;
+	while (detail) {
+		ccount++;
+		detail = detail->next;
+	}
+}
+
+
+bool verify_capture_action_detail(Action_details_t *action)
+{
+
+	return true;
+}
+
+static bool verify_shooter_action_detail(Action_details_t *detail)
+{
+	if (cv_enabled(detail->protect)) {
+		if (!cv_enabled(detail->fromds) && !cv_enabled(detail->tods)) {
+			echo.e("verify action: set proctect, but not set fromds or tods");
+			return false;
+		}
+	}
+	if (!cv_enabled(detail->type)) {
+		echo.e("verify action: not set type");
+		return false;
+	}
+	else {
+		if (VERIFY_WLAN_FRAME(detail->type)) {
+			echo.e("verify action: unknown type: %d", detail->type);
+			return false;
+		}
+	}
+	if (!cv_enabled(detail->subtype)) {
+		echo.e("verify action: not set subtype");
+		return false;
+	}
+	else {
+		switch (detail->type) {
+		case WLAN_FC_TYPE_MGMT:
+			if (!VERIFY_WLAN_FRAME_MGNT(detail->subtype)) {
+				echo.e("verify action: unknown mgnt subtype: %d", detail->subtype);
+				return false;
+			}
+			break;
+		case WLAN_FC_TYPE_CTRL:
+			if (!VERIFY_WLAN_FRAME_CTRL(detail->subtype)) {
+				echo.e("verify action: unknown ctrl subtype: %d", detail->subtype);
+				return false;
+			}
+			break;
+		case WLAN_FC_TYPE_DATA:
+			if (!VERIFY_WLAN_FRAME_DATA(detail->subtype)) {
+				echo.e("verify action: unknown data subtype: %d", detail->subtype);
+				return false;
+			}
+			break;
+		}
+	}
+
+	switch (detail->type) {
+	case WLAN_FC_TYPE_MGMT:
+		if (cv_enabled(detail->ap_addr) && !cv_enabled(detail->st_addr)) {
+			echo.e("verify action: not set st_addr");
+		}
+		if (!cv_enabled(detail->ap_addr) && cv_enabled(detail->st_addr)) {
+			echo.e("verify action: not set ap_addr");
+		}
+		break;
+	case WLAN_FC_TYPE_CTRL:
+		break;
+	case WLAN_FC_TYPE_DATA:
+		break;
+	}
+
+	switch (detail->type) {
+	case WLAN_FC_TYPE_MGMT:
+		break;
+	case WLAN_FC_TYPE_CTRL:
+		break;
+	case WLAN_FC_TYPE_DATA:
+		break;
+	}
+
+	return true;
+}
+
+bool verify_action(Action_t *action)
+{
+	while (action) {
+		if (verify_action(action) == false) {
+			return false;
+		}
+		action = action->next;
+	}
+	return true;
+}
+
+bool verify_config(Config_t *config)
+{
+	Action_t *a, *b;
+	Action_t *action;
+
+	if (get_action_count(config) > 1) {
+		for (a = config->action; a; a = a->next) {
+			for (b = a->next; b; b = b->next) {
+				if (a->id == b->id) {
+					echo.e("duplicate action id '%d'. action: %s, %s",
+							a->id, a->name, b->name);
+					return false;
+				}
+			}
+		}
+	}
+
+	action = config->action;
+	while (action) {
+		if (!verify_action(action)) {
+			return false;
+		}
+		action = action->next;
+	}
+
+	return true;
 }

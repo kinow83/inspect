@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (num_module_option(mopt_list.parser) != 1) {
+	if (get_module_option_count(mopt_list.parser) != 1) {
 		echo.F("missing option: -p");
 	}
 

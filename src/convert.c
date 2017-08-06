@@ -10,6 +10,27 @@
 #include <ctype.h>
 #include "convert.h"
 
+void mac2str(unsigned char* mac, char *str, size_t strlen)
+{
+	snprintf(str, strlen, "%2x:%2xs:%2x:%2x:%2x:%2x",
+			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+bool str2mac(char *str, unsigned char *mac)
+{
+	unsigned int macf[6];
+	int i;
+
+	if (sscanf(str, "%x:%x:%x:%x:%x:%x",
+			&macf[0], &macf[1], &macf[2], &macf[3], &macf[4], &macf[5]) != 6) {
+		return false;
+	}
+
+	for (i = 0; i < 6; i++)
+		*mac++ = (char) macf[i];
+
+	return true;
+}
 
 // Converts a mac address in a human-readable format
 char *new_macstr(unsigned char *mac)

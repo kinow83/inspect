@@ -170,7 +170,7 @@ static void finish_wifi_shooter_rtx(void)
 	}
 }
 
-static int build_wifi_shooter_packet(Action_t *action, u8 *buf, int buflen)
+static int build_wifi_shooter_packet(Action_details_t *detail, u8 *buf, int buflen)
 {
 	int nbytes = 0;
 
@@ -180,14 +180,14 @@ static int build_wifi_shooter_packet(Action_t *action, u8 *buf, int buflen)
 	h = (h80211_hdr_t *)buf;
 	m = (h80211_mgmt_t *)h;
 
-	h->fc.version = action->version;
-	h->fc.type = action->type;
-	h->fc.subtype = action->subtype;
-	h->duration = ntohs(action->duration);
-	h->fc.flags.protect = action->protect;
-	if (action->protect) {
-		h->fc.flags.fromds = action->fromds;
-		h->fc.flags.tods = action->tods;
+	h->fc.version = detail->version;
+	h->fc.type = detail->type;
+	h->fc.subtype = detail->subtype;
+	h->duration = ntohs(detail->duration);
+	h->fc.flags.protect = detail->protect;
+	if (detail->protect) {
+		h->fc.flags.fromds = detail->fromds;
+		h->fc.flags.tods = detail->tods;
 	}
 
 
@@ -206,22 +206,26 @@ static void do_wifi_shooter_rtx(Config_t *config)
 	 */
 	pkts = ShooterPackets;
 	for (action=config->action; action; action=action->next) {
-		if (!pkts) {
-			ShooterPackets = alloc_sizeof(shooter_packet_t);
-			ShooterPackets->action = action;
-			ShooterPackets->pkt = alloc_type(u8, max_pktlen);
-			ShooterPackets->pktlen = build_wifi_shooter_packet(action, ShooterPackets->pkt, max_pktlen);
-		}
-		else {
-			while (!pkts->next) {
-				pkts = pkts->next;
+		if (action->shooter) {
+			if (!pkts) {
+				ShooterPackets = alloc_sizeof(shooter_packet_t);
+				ShooterPackets->action = action;
+				ShooterPackets->pkt = alloc_type(u8, max_pktlen);
+				ShooterPackets->pktlen = build_wifi_shooter_packet(
+						action->shooter, ShooterPackets->pkt, max_pktlen);
 			}
+			else {
+				while (!pkts->next) {
+					pkts = pkts->next;
+				}
 
-			pkts->next = alloc_sizeof(shooter_packet_t);
-			pkts = pkts->next;
-			pkts->action = action;
-			pkts->pkt = alloc_type(u8, 4096);
-			pkts->pktlen = build_wifi_shooter_packet(action, ShooterPackets->pkt, 4096);
+				pkts->next = alloc_sizeof(shooter_packet_t);
+				pkts = pkts->next;
+				pkts->action = action;
+				pkts->pkt = alloc_type(u8, 4096);
+				pkts->pktlen = build_wifi_shooter_packet(
+						action->shooter, ShooterPackets->pkt, 4096);
+			}
 		}
 	}
 
@@ -243,19 +247,19 @@ static const char *usage_wifi_shooter_rtx(void)
 
 void setup_wifi_rtx_module(void)
 {
-	RTX_operations_t shooter_op = {
-		.init_rtx   = init_wifi_shooter_rtx,
-		.do_rtx     = do_wifi_shooter_rtx,
-		.finish_rtx = finish_wifi_shooter_rtx,
-		.usage_rtx  = usage_wifi_shooter_rtx,
-	};
 	RTX_operations_t capture_op = {
 		.init_rtx   = init_wifi_capture_rtx,
 		.do_rtx     = do_wifi_capture_rtx,
 		.finish_rtx = finish_wifi_capture_rtx,
 		.usage_rtx  = usage_wifi_capture_rtx,
 	};
-
 	register_rtx_module("wifi_capture", &capture_op);
+
+	RTX_operations_t shooter_op = {
+		.init_rtx   = init_wifi_shooter_rtx,
+		.do_rtx     = do_wifi_shooter_rtx,
+		.finish_rtx = finish_wifi_shooter_rtx,
+		.usage_rtx  = usage_wifi_shooter_rtx,
+	};
 	register_rtx_module("wifi_shooter", &shooter_op);
 }

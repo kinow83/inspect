@@ -9,6 +9,7 @@
 #define SRC_RESOURCE_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "types.h"
 #include "format.h"
 #include "osdep/osdep.h"
@@ -29,7 +30,9 @@ typedef struct Module_option_list_t {
 
 void free_module_option(Module_option_t *);
 Module_option_t* new_module_option(const char *args);
-size_t num_module_option(Module_option_t *mopt);
+size_t get_module_option_count(Module_option_t *mopt);
+
+char *get_h80211_type_names(u8 type, u8 subtype);
 
 /*
  * cv_def: Config Value Define.
@@ -71,8 +74,12 @@ typedef struct Tag_t {
 	struct Tag_t *next;
 } Tag_t;
 
+typedef struct Action_t Action_t;
 typedef struct Action_details_t {
+	Action_t *action;
+	char *name;
 	u32 id;
+	cv_def(ibss, u8);
 	cv_def(protect, u8);
 	cv_def(duration, u16);   // duration
 	cv_def(version, u8);     // 802.11 version
@@ -129,5 +136,10 @@ void debug_actions(Action_t *action);
 void debug_config(Config_t *config);
 Action_t *get_max_dwell(Config_t *config);
 void sort_actions(Action_t **action);
+
+Action_t *get_max_interval(Config_t *config);
+int get_action_count(Config_t *config);
+int get_capture_count(Action_t *action);
+int get_shooter_count(Action_t *action);
 
 #endif /* SRC_RESOURCE_H_ */

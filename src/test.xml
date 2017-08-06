@@ -5,9 +5,9 @@
 	<action>
 		<id>1</id>
 		<enable>1</enable>
-		<name>test3</name>
-		<interval>300</interval>
-		<channel>3</channel>
+		<name>action 1</name>
+		<interval>100</interval>
+		<channel>1</channel>
 
 		<shooter>
 			<name>shooter #1</name>
@@ -31,14 +31,14 @@
 		<capture>
 			<id>2</id>
 			<name>capture #2</name>
-					:
-					:
 		</capture>
 	</action>
 
-	<action id="2">
-			:
-			:
+	<action>
+		<id>2</id>
+		<name>action 2</name>
+		<interval>200</interval>
+		<channel>test2</channel>
 	</action>
 
 </config>
