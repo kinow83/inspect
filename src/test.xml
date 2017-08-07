@@ -13,25 +13,28 @@
 			<id>1</id>
 			<name>shooter #1</name>
 			<type>0</type>
-			<subtype>8</subtype>
-			<ap_addr>11:22:33:44:55:66</ap_addr>
+			<subtype>beacon</subtype>
+			<sa>11:22:33:44:55:66</sa>
+			<da>ff:ff:ff:ff:ff:ff</da>
 			<tags>
-				<tag id="0" len="9" type="string" data="kaka_ssid" />
 				<tag id="1" len="4" type="hex" data="3048606c" />
+				<tag id="0" len="9" type="string" data="kaka_ssid" />				
 			</tags>
 		</shooter>
 
 		<capture>
 			<id>1</id>
 			<name>capture #1</name>
-			<type>0</type>
-			<subtype>4</subtype>
-			<ap_addr>11:22:33:44:55:66</ap_addr>
+			<type>data</type>
+			<subtype>poll</subtype>
+			<da>11:22:33:44:55:66</da>
 		</capture>
 
 		<capture>
 			<id>2</id>
 			<name>capture #2</name>
+			<type>mgnt</type>
+			<sa>11:22:33:44:55:66</sa>
 		</capture>
 	</action>
 

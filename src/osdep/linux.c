@@ -612,7 +612,7 @@ static int linux_read(struct wif *wi, unsigned char *buf, int count, struct rx_i
 		if ( errno == EAGAIN) {
 			return (0);
 		}
-		perror("read failed");
+//		perror("read failed");
 		return (-1);
 	}
 

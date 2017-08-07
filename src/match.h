@@ -14,6 +14,7 @@ typedef struct Match_operations_t {
 
 typedef struct Match_module_t {
 	bool enable;
+	bool finished;
 	char *match_name;
 	Match_operations_t op;
 	struct Match_module_t *next;
@@ -28,5 +29,8 @@ void register_match_module(const char *, Match_operations_t *);
 void setup_match_modules(void);
 void free_match_moduels(Match_module_t *);
 void usage_match_module(void);
+int num_match_modules(void);
+int num_enabled_match_modules(void);
+void mark_finished_match_module(const char *match_name);
 
 #endif

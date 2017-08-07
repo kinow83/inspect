@@ -104,7 +104,99 @@ void debug_h80211_type_names(void)
 	}
 }
 
-const char *get_h80211_type_names(u8 type, u8 subtype)
+bool get_80211_type_code(const char *typename, u8 *type)
+{
+	int i;
+
+	*type = 0;
+
+	for (i=0; i<sizeof(h80211_frame_string)/sizeof(char *); i++) {
+		if (!strcasecmp(h80211_frame_string[i], typename)) {
+			*type = i;
+			break;
+		}
+	}
+
+	if (i == sizeof(h80211_frame_string)/sizeof(char *)) {
+		return false;
+	}
+	return true;
+}
+
+bool get_80211_subtype_code(const char *typename, const char *subtypename, u8 *type, u8 *subtype)
+{
+	int i;
+	u8 ntype = 0, nsubtype = 0;
+
+	for (i=0; i<sizeof(h80211_frame_string)/sizeof(char *); i++) {
+		if (!strcasecmp(h80211_frame_string[i], typename)) {
+			ntype = i;
+			break;
+		}
+	}
+
+	if (i == sizeof(h80211_frame_string)/sizeof(char *)) {
+		return false;
+	}
+
+	switch (ntype) {
+	case 0:
+		for (i=0; i<sizeof(h80211_mgnt_string)/sizeof(char *); i++) {
+			if (!strcasecmp(h80211_mgnt_string[i], subtypename)
+					// not empty string
+					&& h80211_mgnt_string[i][0]) {
+				nsubtype = i;
+				break;
+			}
+		}
+		break;
+	case 1:
+		for (i=0; i<sizeof(h80211_ctrl_string)/sizeof(char *); i++) {
+			if (!strcasecmp(h80211_ctrl_string[i], subtypename)
+					// not empty string
+					&& h80211_ctrl_string[i][0]) {
+				nsubtype = i;
+				break;
+			}
+		}
+		break;
+	case 2:
+		for (i=0; i<sizeof(h80211_data_string)/sizeof(char *); i++) {
+			if (!strcasecmp(h80211_data_string[i], subtypename)
+					// not empty string
+					&& h80211_data_string[i][0]) {
+				nsubtype = i;
+				break;
+			}
+		}
+		break;
+	default:
+		return false;
+	}
+
+	if (type) *type = ntype;
+	if (subtype) *subtype = nsubtype;
+
+	return true;
+}
+
+const char *get_80211_type_name(u8 type)
+{
+	switch (type) {
+		case WLAN_FC_TYPE_MGMT:
+			return h80211_frame_string[WLAN_FC_TYPE_MGMT];
+			break;
+		case WLAN_FC_TYPE_CTRL:
+			return h80211_frame_string[WLAN_FC_TYPE_CTRL];
+			break;
+		case WLAN_FC_TYPE_DATA:
+			return h80211_frame_string[WLAN_FC_TYPE_DATA];
+			break;
+	}
+	return "";
+}
+
+const char *get_80211_subtype_name(u8 type, u8 subtype)
 {
 	switch (type) {
 		case WLAN_FC_TYPE_MGMT:
@@ -276,6 +368,10 @@ void free_config(Config_t *config)
 	if (!config) return;
 
 	free_actions(config->action);
+
+	if (config->name) {
+		free(config->name);
+	}
 	free(config);
 }
 
@@ -348,20 +444,21 @@ void debug_tags(Tag_t *tag)
 
 	if (tag->type == TAG_TYPE_HEX) {
 		type = "hex";
-		len = (tag->len * 2);
-		buf = alloc_type(char, len+1);
-		for (i = 0; i < len; i++) {
-			n += snprintf(buf + n, len - n, "%02x", tag->data[i]);
+		len = tag->len * 2;
+		buf = alloc_type(char, len + 1);
+		for (i = 0; i < tag->len; i++) {
+			n += snprintf(buf + n, len + 1 - n, "%02x", tag->data[i]);
 		}
 	}
 	else { // str
 		len = tag->len;
-		buf = alloc_type(char, len+1);
+		buf = alloc_type(char, len + 1);
 		strncpy(buf, tag->data, len);
 	}
 
 	echo.D("\t\t\t id=%d, len=%d, type=%s, data=%s",
 			tag->id, tag->len, type, buf);
+	free(buf);
 }
 
 void debug_action_details(Action_details_t *detail)
@@ -378,7 +475,7 @@ void debug_action_details(Action_details_t *detail)
 	if (cv_enabled(detail->subtype)) {
 		echo.D("\t\t subtype = %d (%s)",
 				detail->subtype,
-				get_h80211_type_names(detail->type, detail->subtype));
+				get_80211_subtype_name(detail->type, detail->subtype));
 	}
 	if (cv_enabled(detail->protect)) {
 		echo.D("\t\t protect = %d", detail->protect);
@@ -410,11 +507,11 @@ void debug_action_details(Action_details_t *detail)
 	if (cv_enabled(detail->any_addr)) {
 		echo.D("\t\t any_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->any_addr));
 	}
-	if (cv_enabled(detail->ap_addr)) {
-		echo.D("\t\t ap_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->ap_addr));
+	if (cv_enabled(detail->da)) {
+		echo.D("\t\t da = "_MAC_FMT_, _MAC_FMT_FILL_(detail->da));
 	}
-	if (cv_enabled(detail->st_addr)) {
-		echo.D("\t\t st_addr = "_MAC_FMT_, _MAC_FMT_FILL_(detail->st_addr));
+	if (cv_enabled(detail->sa)) {
+		echo.D("\t\t sa = "_MAC_FMT_, _MAC_FMT_FILL_(detail->sa));
 	}
 
 	tag = detail->tags;
@@ -428,8 +525,7 @@ void debug_actions(Action_t *action)
 {
 	Action_details_t *detail;
 
-	echo.D("\t ------------------------------------------");
-	echo.D("\t id = %d", action->id);
+	echo.D("\t [action id = %d]-------------------------------------", action->id);
 	echo.D("\t name = %s", action->name);
 	echo.D("\t interval = %d", action->interval);
 	echo.D("\t channel = %d", action->channel);
@@ -502,6 +598,7 @@ int get_action_count(Config_t *config)
 		acount++;
 		action = action->next;
 	}
+	return acount;
 }
 
 int get_capture_count(Action_t *action)
@@ -514,6 +611,7 @@ int get_capture_count(Action_t *action)
 		ccount++;
 		detail = detail->next;
 	}
+	return ccount;
 }
 
 int get_shooter_count(Action_t *action)
@@ -526,6 +624,7 @@ int get_shooter_count(Action_t *action)
 		ccount++;
 		detail = detail->next;
 	}
+	return ccount;
 }
 
 
@@ -582,11 +681,11 @@ static bool verify_shooter_action_detail(Action_details_t *detail)
 
 	switch (detail->type) {
 	case WLAN_FC_TYPE_MGMT:
-		if (cv_enabled(detail->ap_addr) && !cv_enabled(detail->st_addr)) {
-			echo.e("verify action: not set st_addr");
+		if (cv_enabled(detail->da) && !cv_enabled(detail->sa)) {
+			echo.e("verify action: not set sa");
 		}
-		if (!cv_enabled(detail->ap_addr) && cv_enabled(detail->st_addr)) {
-			echo.e("verify action: not set ap_addr");
+		if (!cv_enabled(detail->da) && cv_enabled(detail->sa)) {
+			echo.e("verify action: not set da");
 		}
 		break;
 	case WLAN_FC_TYPE_CTRL:
@@ -686,13 +785,14 @@ Tag_t *last_tag(Tag_t *first)
 	return cur;
 }
 
-Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 *data)
+Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 type, u8 *data)
 {
 	Tag_t *tag;
 
 	tag = alloc_sizeof(Tag_t);
 	tag->id = id;
 	tag->len = len;
+	tag->type = type;
 	if (len == 0) {
 		tag->data = NULL;
 	} else {
@@ -708,7 +808,7 @@ Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 *data)
 
 Tag_t *new_sort_tags(Tag_t *first)
 {
-	Tag_t *sort, *cur, *find;
+	Tag_t *sorted, *cur, *find;
 	int id;
 	char ids[256] = {0, };
 
@@ -723,19 +823,35 @@ Tag_t *new_sort_tags(Tag_t *first)
 		cur = cur->next;
 	}
 
+	sorted = NULL;
 	cur = NULL;
 	for (id = 0; id < 256; id++) {
 		if (ids[id] == 1) {
 			find = find_tag(first, id);
 			assert(find != NULL);
-			cur = new_tag(cur, find->id, find->len, find->data);
+			cur = new_tag(cur, find->id, find->len, find->type, find->data);
 
-			if (!sort) {
-				sort = cur;
+			if (!sorted) {
+				sorted = cur;
 			}
 		}
 	}
 	free_tags(first);
-	return sort;
+	return sorted;
 }
 
+pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *))
+{
+	pthread_t pid = 0;
+
+	if (thread) {
+		if (pthread_create(&pid, NULL, fp, config) != 0) {
+			echo.f("Error pthread_create(): %s", strerror(errno));
+		}
+		pthread_detach(pid);
+	}
+	else {
+		fp(config);
+	}
+	return pid;
+}

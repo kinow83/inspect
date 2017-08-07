@@ -11,6 +11,29 @@
 #include "strings.h"
 
 
+bool is_number(const char *str)
+{
+	int i, k;
+	int len;
+	bool matched;
+	static const char no[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+	len = strlen(str);
+
+	for (i=0; i<len; i++) {
+		matched = false;
+		for (k=0; k<sizeof(no)/sizeof(char); k++) {
+			if (str[i] == no[k]) {
+				matched = true;
+				break;
+			}
+		}
+		if (matched == false) {
+			return false;
+		}
+	}
+	return true;
+}
 
 char **new_splits(const char *str, char *sep, int *ntoks)
 {

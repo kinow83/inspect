@@ -42,10 +42,20 @@ void init_output_modules(Module_option_t *mopt)
 
 void finish_output_modules(void)
 {
+	u32 toolongtime = 0;
 	Output_module_t *idx;
 
 	idx = OutputModules;
 	while (idx) {
+		while (idx->finished == false) {
+			usleep(10);
+			toolongtime++;
+			if (toolongtime > 10000) {
+				echo.E("waiting too long time for finish output modules: %s", idx->output_name);
+				toolongtime = 0;
+			}
+		}
+
 		idx->op.finish_output();
 		idx = idx->next;
 	}
@@ -61,6 +71,7 @@ void do_output(Action_t *action, void *data)
 	idx = OutputModules;
 	while (idx) {
 		if(idx->enable == true) {
+			idx->finished = false;
 			idx->op.do_output(action, data);
 		}
 		idx = idx->next;
@@ -73,8 +84,8 @@ void do_output_by_name(Action_t *action, const char *name, void *data)
 
 	idx = OutputModules;
 	while (idx) {
-		if((idx->enable == true) &&
-				!(strcasecmp(name, idx->output_name))) {
+		if((idx->enable == true) && !(strcasecmp(name, idx->output_name))) {
+			idx->finished = false;
 			idx->op.do_output(action, data);
 			break;
 		}
@@ -106,6 +117,7 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 	if (!idx) {
 		OutputModules = alloc_sizeof(Output_module_t);
 		OutputModules->enable = false;
+		OutputModules->finished = true;
 		OutputModules->output_name = strdup(output_name);
 		OutputModules->op.init_output = op->init_output;
 		OutputModules->op.do_output = op->do_output;
@@ -125,13 +137,14 @@ void register_output_module(const char *output_name, Output_operations_t *op)
 		idx = idx->next;
 
 		idx->enable = false;
+		idx->finished = true;
 		idx->output_name = strdup(output_name);
 		idx->op.init_output = op->init_output;
 		idx->op.do_output = op->do_output;
 		idx->op.finish_output = op->finish_output;
 		idx->op.usage_output = op->usage_output;
 	}
-//	echo.d("register output module [%s]", output_name);
+	echo.d("register output module [%s]", output_name);
 }
 
 void usage_output_module(void)
@@ -142,6 +155,49 @@ void usage_output_module(void)
 	while (idx) {
 		echo.out("\t\t[%s]", idx->output_name);
 		echo.out("\t\t\t%s", idx->op.usage_output());
+		idx = idx->next;
+	}
+}
+
+int num_output_modules(void)
+{
+	Output_module_t *idx;
+	int count = 0;
+
+	idx = OutputModules;
+	while (idx) {
+		count++;
+		idx = idx->next;
+	}
+	return count;
+}
+
+int num_enabled_output_modules(void)
+{
+	Output_module_t *idx;
+	int count = 0;
+
+	idx = OutputModules;
+	while (idx) {
+		if (idx->enable) {
+			count++;
+		}
+		idx = idx->next;
+	}
+	return count;
+}
+
+void mark_finished_output_module(const char *output_name)
+{
+	Output_module_t *idx;
+
+	idx = OutputModules;
+	while (idx) {
+		if (!strcasecmp(output_name, idx->output_name)) {
+			idx->finished = true;
+//			echo.I("mark_finished_output_module: %s", idx->output_name);
+			break;
+		}
 		idx = idx->next;
 	}
 }

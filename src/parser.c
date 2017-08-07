@@ -143,7 +143,7 @@ void register_parser_module(const char *parser_name, Parser_operations_t *op)
 		idx->op.finish_parser = op->finish_parser;
 		idx->op.usage_parser = op->usage_parser;
 	}
-//	echo.d("register parser module [%s]", parser_name);
+	echo.d("register parser module [%s]", parser_name);
 }
 
 void usage_parser_module(void)
@@ -156,6 +156,34 @@ void usage_parser_module(void)
 		echo.out("\t\t\t%s", idx->op.usage_parser());
 		idx = idx->next;
 	}
+}
+
+int num_parser_modules(void)
+{
+	Parser_module_t *idx;
+	int count = 0;
+
+	idx = ParserModules;
+	while (idx) {
+		count++;
+		idx = idx->next;
+	}
+	return count;
+}
+
+int num_enabled_parser_modules(void)
+{
+	Parser_module_t *idx;
+	int count = 0;
+
+	idx = ParserModules;
+	while (idx) {
+		if (idx->enable) {
+			count++;
+		}
+		idx = idx->next;
+	}
+	return count;
 }
 
 

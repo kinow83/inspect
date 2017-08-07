@@ -23,9 +23,9 @@
 #include "resource.h"
 #include "log.h"
 #include "module.h"
+#include "strings.h"
 
-
-int do_exit;
+bool do_exit;
 
 
 static void setup_modules(void)
@@ -38,16 +38,9 @@ static void setup_modules(void)
 
 static void init_modules(Module_option_list_t *opts)
 {
-	echo.d("initialize parser modules");
 	init_parser_modules(opts->parser);
-
-	echo.d("initialize match modules");
 	init_match_modules(opts->match);
-
-	echo.d("initialize output modules");
 	init_output_modules(opts->output);
-
-	echo.d("initialize rtx modules");
 	init_rtx_modules(opts->rtx);
 }
 
@@ -61,58 +54,18 @@ static void free_module_option_list(Module_option_list_t *opts)
 
 static void finish_modules()
 {
-	echo.d("finish parser modules");
 	finish_parser_modules();
-
-	echo.d("finish match modules");
 	finish_match_modules();
-
-	echo.d("finish output modules");
 	finish_output_modules();
-
-	echo.d("finish rtx modules");
 	finish_rtx_modules();
 }
 
 static void free_modules()
 {
-	echo.d("free/release parser modules");
 	free_parser_modules(NULL);
-
-	echo.d("free/release match modules");
 	free_match_moduels(NULL);
-
-	echo.d("free/release output modules");
 	free_output_modules(NULL);
-
-	echo.d("free/release rtx modules");
 	free_rtx_modules(NULL);
-
-}
-
-static void* do_shooter(void *arg)
-{
-
-}
-
-static void* do_capture(void *arg)
-{
-
-}
-
-static pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *))
-{
-	pthread_t pid = 0;
-
-	if (thread) {
-		if (pthread_create(&pid, NULL, fp, config) != 0) {
-			echo.f("Error pthread_create(): %s", strerror(errno));
-		}
-	}
-	else {
-		fp(config);
-	}
-	return pid;
 }
 
 void usage(int argc, char **argv)
@@ -121,7 +74,7 @@ void usage(int argc, char **argv)
 	echo.OUT("Usage: inspect <options>");
 	echo.out("options:");
 	echo.out("\t -r <rtx module name:options>    : rtx module");
-	usage_rts_module();
+	usage_rtx_module();
 	echo.out("\t -o <output module name:options> : output module");
 	usage_output_module();
 	echo.out("\t -p <parser module name:options> : parser module");
@@ -131,12 +84,6 @@ void usage(int argc, char **argv)
 	echo.out("\t -v                              : version");
 	echo.out("\t -h -?                           : help");
 	exit(1);
-
-/*
-
- -o xml:filename=date.log,rotate=daily;sock:
-
- */
 }
 
 void sighandler(int signum)
@@ -155,6 +102,8 @@ void sighandler(int signum)
 	default:
 		break;
 	}
+	do_exit = true;
+	echo.I("catch signal");
 }
 
 int main(int argc, char **argv)
@@ -208,6 +157,11 @@ int main(int argc, char **argv)
 	} else {
 		debug_config(config);
 	}
+
+	do_exit = false;
+
+    signal(SIGINT,  sighandler);
+    signal(SIGTERM, sighandler);
 
 	// run rtx modules
 	do_rtx_modules(config);

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 #include "format.h"
 #include "parser.h"
 #include "log.h"
@@ -24,9 +25,14 @@
 #include "alloc.h"
 #include "strings.h"
 #include "rtx.h"
+#include "match.h"
 #include "h80211_struct.h"
 #include "osdep/osdep.h"
 
+#define WIFI_CAPTURE_NAME "wifi_capture"
+#define WIFI_SHOOTER_NAME "wifi_shooter"
+
+extern bool do_exit;
 
 typedef struct shooter_packet_t {
 	Action_t *action;
@@ -35,19 +41,28 @@ typedef struct shooter_packet_t {
 	struct shooter_packet_t *next;
 } shooter_packet_t;
 
+typedef struct Wif_args_t {
+	struct wif *wi;
+	bool thread;
+	pthread_t pid;
+} Wif_args_t;
 
-static struct wif *ShooterWif;
-static struct wif *CaptureWif;
+static Wif_args_t *ShooterWif;
+static Wif_args_t *CaptureWif;
 shooter_packet_t *ShooterPackets;
-pthread_t CapturePid;
 
 
-static struct wif *new_wif(char *options)
+
+static Wif_args_t *new_wif(char *options)
 {
 	char **chunk, **field;
 	int nchunk, nfield;
 	int i;
-	struct wif *wi;
+	Wif_args_t *wiarg;
+
+	wiarg = alloc_sizeof(Wif_args_t);
+	wiarg->pid = 0;
+	wiarg->thread = false;
 
 	chunk = new_splits(options, ",", &nchunk);
 	if (!chunk || nchunk == 0) {
@@ -59,16 +74,27 @@ static struct wif *new_wif(char *options)
 			echo.f("error wifi_rtx: invalid option: %s", chunk[i]);
 		}
 		if (!strcasecmp("dev", field[0])) {
-			wi = wi_open(field[1]);
-			if (!wi) {
+			wiarg->wi = wi_open(field[1]);
+			if (!wiarg->wi) {
 				echo.f("error wifi_rtx: can't open: %s", field[1]);
+			}
+		}
+		if (!strcasecmp("thread", field[0])) {
+			if (!strcasecmp("yes", field[1])
+					|| !strcasecmp("1", field[1])
+					|| !strcasecmp("true", field[1])) {
+				wiarg->thread = true;
 			}
 		}
 		free_splits(field, nfield);
 	}
 	free_splits(chunk, nchunk);
 
-	return wi;
+	if (!wiarg->wi) {
+		echo.f("MUST need wifi_rtx interface");
+	}
+
+	return wiarg;
 }
 
 /****************************************
@@ -77,15 +103,18 @@ static struct wif *new_wif(char *options)
 static void init_wifi_capture_rtx(char *options)
 {
 	CaptureWif = new_wif(options);
+
 	echo.i("[wifi capture rtx options]");
-	echo.i("dev = %s", CaptureWif->wi_interface);
+	echo.i("dev = %s", CaptureWif->wi->wi_interface);
 }
 
 static void finish_wifi_capture_rtx(void)
 {
-	if (ShooterWif) {
-		wi_close(ShooterWif);
-		ShooterWif = NULL;
+	if (CaptureWif) {
+		if (CaptureWif->wi) {
+			wi_close(CaptureWif->wi);
+			CaptureWif->wi = NULL;
+		}
 	}
 }
 
@@ -101,7 +130,7 @@ static void xlat_output_data(u8 *h80211, int h80211len, struct rx_info *ri, Outp
 
 }
 
-static void *do_wifi_capture_rtx_thread(void *arg)
+static void *do_wifi_capture_rtx_func(void *arg)
 {
 	Config_t *config;
 	Action_t *action;
@@ -112,8 +141,16 @@ static void *do_wifi_capture_rtx_thread(void *arg)
 
 	config = (Config_t *)arg;
 
-	while (true) {
-		h80211len = wi_read(CaptureWif, h80211, sizeof(h80211), &ri);
+	if (num_enabled_match_modules() == 0) {
+		echo.E("wifi capture dosen't have enabled match modules");
+		return NULL;
+	}
+	if (!CaptureWif->wi) {
+		echo.F("yet, wifi interface doesn't prepared");
+	}
+
+	while (likely(!do_exit)) {
+		h80211len = wi_read(CaptureWif->wi, h80211, sizeof(h80211), &ri);
 
 		action = do_match(config, h80211, h80211len, &ri);
 		if (action) {
@@ -121,15 +158,15 @@ static void *do_wifi_capture_rtx_thread(void *arg)
 			do_output(action, &output);
 		}
 	}
+	mark_finished_rtx_module(WIFI_CAPTURE_NAME);
+
+	return NULL;
 }
 
 static void do_wifi_capture_rtx(Config_t *config)
 {
-	if (pthread_create(&CapturePid, NULL,
-			do_wifi_capture_rtx_thread, (void *)config) != 0) {
-		echo.f("do_wifi_capture_rtx_thread: %s", strerror(errno));
-	}
-	pthread_detach(CapturePid);
+	CaptureWif->pid = run_or_thread(
+			config, CaptureWif->thread, do_wifi_capture_rtx_func);
 }
 
 static const char *usage_wifi_capture_rtx(void)
@@ -145,8 +182,9 @@ static const char *usage_wifi_capture_rtx(void)
 static void init_wifi_shooter_rtx(char *options)
 {
 	ShooterWif = new_wif(options);
+
 	echo.i("[wifi shooter rtx options]");
-	echo.i("dev = %s", ShooterWif->wi_interface);
+	echo.i("dev = %s", ShooterWif->wi->wi_interface);
 }
 
 static void finish_wifi_shooter_rtx(void)
@@ -154,8 +192,10 @@ static void finish_wifi_shooter_rtx(void)
 	shooter_packet_t *pkts, *tmp;
 
 	if (ShooterWif) {
-		wi_close(ShooterWif);
-		ShooterWif = NULL;
+		if (ShooterWif->wi) {
+			wi_close(ShooterWif->wi);
+			ShooterWif->wi = NULL;
+		}
 	}
 
 	pkts = ShooterPackets;
@@ -194,12 +234,15 @@ static int build_wifi_shooter_packet(Action_details_t *detail, u8 *buf, int bufl
 	return nbytes;
 }
 
-static void do_wifi_shooter_rtx(Config_t *config)
+static void *do_wifi_shooter_rtx_func(void *arg)
 {
+	Config_t *config;
 	Action_t *action;
 	shooter_packet_t *pkts;
 	int nbytes;
 	static const int max_pktlen = 4096;
+
+	config = (Config_t *)arg;
 
 	/**
 	 * prepare build shooter packet.
@@ -232,12 +275,20 @@ static void do_wifi_shooter_rtx(Config_t *config)
 	/**
 	 * loop shoot packet
 	 */
-	while (true) {
+	while (likely(!do_exit)) {
 		for (pkts=ShooterPackets; pkts; pkts=pkts->next) {
-			nbytes = wi_write(ShooterWif, pkts->pkt, pkts->pktlen, NULL);
+			nbytes = wi_write(ShooterWif->wi, pkts->pkt, pkts->pktlen, NULL);
 			sleep(1);
 		}
 	}
+
+	return NULL;
+}
+
+static void do_wifi_shooter_rtx(Config_t *config)
+{
+	ShooterWif->pid = run_or_thread(
+			config, ShooterWif->thread, do_wifi_shooter_rtx_func);
 }
 
 static const char *usage_wifi_shooter_rtx(void)
@@ -253,7 +304,7 @@ void setup_wifi_rtx_module(void)
 		.finish_rtx = finish_wifi_capture_rtx,
 		.usage_rtx  = usage_wifi_capture_rtx,
 	};
-	register_rtx_module("wifi_capture", &capture_op);
+	register_rtx_module(WIFI_CAPTURE_NAME, &capture_op);
 
 	RTX_operations_t shooter_op = {
 		.init_rtx   = init_wifi_shooter_rtx,
@@ -261,5 +312,5 @@ void setup_wifi_rtx_module(void)
 		.finish_rtx = finish_wifi_shooter_rtx,
 		.usage_rtx  = usage_wifi_shooter_rtx,
 	};
-	register_rtx_module("wifi_shooter", &shooter_op);
+	register_rtx_module(WIFI_SHOOTER_NAME, &shooter_op);
 }

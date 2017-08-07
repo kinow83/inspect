@@ -22,6 +22,7 @@ typedef struct Output_operations_t {
 
 typedef struct Output_module_t {
 	bool enable;
+	bool finished;
 	char *output_name;
 	Output_operations_t op;
 	void *context;
@@ -37,5 +38,8 @@ void register_output_module(const char *, Output_operations_t *);
 void setup_output_modules(void);
 void free_output_modules(Output_module_t *);
 void usage_output_module(void);
+int num_output_modules(void);
+int num_enabled_output_modules(void);
+void mark_finished_output_module(const char *output_name);
 
 #endif

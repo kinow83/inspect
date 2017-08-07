@@ -11,6 +11,7 @@
 #include "convert.h"
 #include "strings.h"
 
+#define WIFI_XML_OUTPUT_NAME "xml"
 
 static u32 xid;
 static char *prefix;
@@ -55,6 +56,8 @@ static void do_wifi_xml_output(Action_t *action, void *output_data)
 			GET_WLAN_SUBTYPE(h) == WLAN_FC_STYPE_DEAUTH) {
 		ezxml_set_attr(child, "deauth",   new_itoa(ntohs(m->u.deauth.reason), 10));
 	}
+
+	mark_finished_output_module(WIFI_XML_OUTPUT_NAME);
 }
 
 static void init_wifi_xml_output(char *options)
@@ -113,5 +116,5 @@ void setup_wifi_xml_output_module(void)
 			.usage_output  = usage_wifi_xml_output,
 	};
 
-	register_output_module("xml", &op);
+	register_output_module(WIFI_XML_OUTPUT_NAME, &op);
 }

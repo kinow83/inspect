@@ -59,8 +59,10 @@ static Tag_t *xml_tag_parsing(
 		tag->next = NULL;
 
 		if (hexmode) {
-			hex2binarray(data, tag->data, tag->len);
+			tag->type = TAG_TYPE_HEX;
+			int n = hex2binarray(data, tag->data, tag->len);
 		} else {
+			tag->type = TAG_TYPE_STR;
 			strncpy((char *)tag->data, data, tag->len);
 			tag->data[tag->len] = '\0';
 		}
@@ -78,11 +80,18 @@ static Tag_t *xml_tag_parsing(
 	return first;
 }
 
+/**
+ * In case capture, not check bellow
+ * - subtype
+ * - from ds / to ds
+ * - da / sa / addr1 / addr2 / addr3 / addr4 / any_addr
+ */
 static Action_details_t *xml_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml, bool check_addr)
+		const char *filename, Action_t *action ,ezxml_t xml, bool is_shooter)
 {
 	ezxml_t e;
 	Action_details_t *detail;
+	const char *typename = NULL;
 
 	detail = alloc_sizeof(Action_details_t);
 
@@ -108,45 +117,67 @@ static Action_details_t *xml_detail_parsing(
 	// IEEE 802.11 mac frame type
 	e = ezxml_child(xml, "type");
 	if (e && e->txt) {
-		detail->type = (u8)atoi(e->txt);
+		if (is_number(e->txt)) {
+			detail->type = (u8)atoi(e->txt);
+			typename = get_80211_type_name(detail->type);
+		} else {
+			if (get_80211_type_code(e->txt, &detail->type) == false) {
+				echo.f("xml_parer: unknown 'type' = %s [detail:%s, action:%s, file:%s]",
+						e->txt, detail->name, action->name, filename);
+			}
+			typename = e->txt;
+		}
+
+		if(!VERIFY_WLAN_FRAME(detail->type)) {
+			echo.f("xml_parer: invalid 'type=%d' [detail:%s, action:%s, file:%s]",
+					detail->type, detail->name, action->name, filename);
+		}
+
 		cv_enable(detail->type);
 	} else {
 		echo.f("xml_parer: empty 'type' [detail:%s, action:%s, file:%s]",
 				detail->name, action->name, filename);
 	}
-	if(!VERIFY_WLAN_FRAME(detail->type)) {
-		echo.f("xml_parer: invalid 'type=%d' [detail:%s, action:%s, file:%s]",
-				detail->type, detail->name, action->name, filename);
-	}
 
 	// IEEE 802.11 mac frame subtype
 	e = ezxml_child(xml, "subtype");
 	if (e && e->txt) {
-		detail->subtype = (u8)atoi(e->txt);
+		if (is_number(e->txt)) {
+			detail->subtype = (u8)atoi(e->txt);
+		} else {
+			if (get_80211_subtype_code(typename, e->txt, NULL, &detail->type) == false) {
+				echo.f("xml_parer: unknown 'subtype' = %s [detail:%s, action:%s, file:%s]",
+						e->txt, detail->name, action->name, filename);
+			}
+		}
+
+		switch (detail->type) {
+		case WLAN_FC_TYPE_MGMT:
+			if (!VERIFY_WLAN_FRAME_MGNT(detail->subtype)) {
+				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name, action->name, filename);
+			}
+			break;
+		case WLAN_FC_TYPE_CTRL:
+			if (!VERIFY_WLAN_FRAME_CTRL(detail->subtype)) {
+				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name, action->name, filename);
+			}
+			break;
+		case WLAN_FC_TYPE_DATA:
+			if (!VERIFY_WLAN_FRAME_DATA(detail->subtype)) {
+				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name, action->name, filename);
+			}
+			break;
+		}
+
 		cv_enable(detail->subtype);
 	} else {
-		echo.f("xml_parer: empty 'subtype' [detail:%s, action:%s, file:%s]",
+		if (is_shooter) {
+			echo.f("xml_parer: empty 'subtype' [detail:%s, action:%s, file:%s]",
 				detail->name, action->name, filename);
-	}
-	switch (detail->type) {
-	case WLAN_FC_TYPE_MGMT:
-		if (!VERIFY_WLAN_FRAME_MGNT(detail->subtype)) {
-			echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-					detail->subtype, detail->name, action->name, filename);
 		}
-		break;
-	case WLAN_FC_TYPE_CTRL:
-		if (!VERIFY_WLAN_FRAME_CTRL(detail->subtype)) {
-			echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-					detail->subtype, detail->name, action->name, filename);
-		}
-		break;
-	case WLAN_FC_TYPE_DATA:
-		if (!VERIFY_WLAN_FRAME_DATA(detail->subtype)) {
-			echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-					detail->subtype, detail->name, action->name, filename);
-		}
-		break;
 	}
 
 	// from ds / to ds
@@ -156,8 +187,10 @@ static Action_details_t *xml_detail_parsing(
 		cv_enable(detail->fromds);
 	} else {
 		if (detail->type == WLAN_FC_TYPE_DATA) {
-			echo.f("xml_parer: empty 'fromds' [detail:%s, action:%s, file:%s]",
-				detail->name, action->name, filename);
+			if (is_shooter) {
+				echo.f("xml_parer: empty 'fromds' [detail:%s, action:%s, file:%s]",
+						detail->name, action->name, filename);
+			}
 		}
 	}
 	e = ezxml_child(xml, "tods");
@@ -166,26 +199,28 @@ static Action_details_t *xml_detail_parsing(
 		cv_enable(detail->tods);
 	} else {
 		if (detail->type == WLAN_FC_TYPE_DATA) {
-			echo.f("xml_parer: empty 'tods' [detail:%s, action:%s, file:%s]",
-				detail->name, action->name, filename);
+			if (is_shooter) {
+				echo.f("xml_parer: empty 'tods' [detail:%s, action:%s, file:%s]",
+						detail->name, action->name, filename);
+			}
 		}
 	}
 	// target or source mac address
-	e = ezxml_child(xml, "ap_addr");
+	e = ezxml_child(xml, "da");
 	if (e && e->txt) {
-		if (!str2mac(e->txt, detail->ap_addr)) {
-			echo.f("xml_parer: invalid 'ap_addr' [detail:%s, action:%s, file:%s]",
+		if (!str2mac(e->txt, detail->da)) {
+			echo.f("xml_parer: invalid 'da' [detail:%s, action:%s, file:%s]",
 					detail->name, action->name, filename);
 		}
-		cv_enable(detail->ap_addr);
+		cv_enable(detail->da);
 	}
-	e = ezxml_child(xml, "st_addr");
+	e = ezxml_child(xml, "sa");
 	if (e && e->txt) {
-		if (!str2mac(e->txt, detail->st_addr)) {
-			echo.f("xml_parer: invalid 'st_addr' [detail:%s, action:%s, file:%s]",
+		if (!str2mac(e->txt, detail->sa)) {
+			echo.f("xml_parer: invalid 'sa' [detail:%s, action:%s, file:%s]",
 					detail->name, action->name, filename);
 		}
-		cv_enable(detail->st_addr);
+		cv_enable(detail->sa);
 	}
 	e = ezxml_child(xml, "any_addr");
 	if (e && e->txt) {
@@ -229,11 +264,11 @@ static Action_details_t *xml_detail_parsing(
 	}
 
 	// check address
-	if (check_addr) {
+	if (is_shooter) {
 		switch (detail->type) {
 		case WLAN_FC_TYPE_MGMT:
-			if (cv_enabled(detail->ap_addr) ^ cv_enabled(detail->st_addr)) {
-				echo.f("xml_parer: mgnt frame. but empty 'ap_addr' or 'st_addr' "
+			if (cv_enabled(detail->da) ^ cv_enabled(detail->sa)) {
+				echo.f("xml_parer: mgnt frame. but empty 'da' or 'sa' "
 						"[detail:%s, action:%s, file:%s]",
 						detail->name, action->name, filename);
 			} else {
@@ -269,8 +304,8 @@ static Action_details_t *xml_detail_parsing(
 			}
 			break;
 		case WLAN_FC_TYPE_DATA:
-			if (cv_enabled(detail->ap_addr) ^ cv_enabled(detail->st_addr)) {
-				echo.f("xml_parer: data frame. but empty 'ap_addr' or 'st_addr' "
+			if (cv_enabled(detail->da) ^ cv_enabled(detail->sa)) {
+				echo.f("xml_parer: data frame. but empty 'da' or 'sa' "
 						"[detail:%s, action:%s, file:%s]",
 						detail->name, action->name, filename);
 			} else {
@@ -461,6 +496,7 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
 	}
 	config->name = strdup(e->txt);
 
+	config->action = NULL;
 	// multi action in config.
 	for (e = ezxml_child(xml, "action"); e; e = e->next) {
 		action = xml_action_parsing(filename, e);

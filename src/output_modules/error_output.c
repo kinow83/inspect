@@ -14,6 +14,8 @@
 #include "output.h"
 #include "strings.h"
 
+#define ERROR_OUTPUT_NAME "error"
+
 static FILE *ErrFp;
 static char *ErrFilename;
 
@@ -24,6 +26,8 @@ static void do_error_output(Action_t *action, void *output_data)
 	if (ErrFp) {
 		fprintf(ErrFp, "%s\n", data);
 	}
+
+	mark_finished_output_module(ERROR_OUTPUT_NAME);
 }
 
 static void init_error_output(char *options)
@@ -87,5 +91,5 @@ void setup_error_output_module(void)
 			.usage_output  = usage_error_output,
 	};
 
-	register_output_module("error", &op);
+	register_output_module(ERROR_OUTPUT_NAME, &op);
 }

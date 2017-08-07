@@ -648,12 +648,12 @@ typedef struct h80211_hdr_t {
 				u8 addr1[6];
 				u8 addr2[6];
 				u8 addr3[6];
-			} STRUCT_PACKED an;
+			} STRUCT_PACKED n;
 			struct {
 				u8 da[6];
 				u8 sa[6];
 				u8 bssid[6];
-			} STRUCT_PACKED ad;
+			} STRUCT_PACKED d;
 		} u;
 	} STRUCT_PACKED addr;
 	h80211_fragseq_t fragseq;
@@ -686,12 +686,12 @@ typedef struct h80211_mgmt_t {
 				u8 addr1[6];
 				u8 addr2[6];
 				u8 addr3[6];
-			} STRUCT_PACKED an;
+			} STRUCT_PACKED n;
 			struct {
 				u8 da[6];
 				u8 sa[6];
 				u8 bssid[6];
-			} STRUCT_PACKED ad;
+			} STRUCT_PACKED d;
 		} u;
 	} STRUCT_PACKED addr;
 
@@ -708,13 +708,18 @@ typedef struct h80211_mgmt_t {
 		} STRUCT_PACKED beacon;       // total: 12 byte
 
 		struct {
+			/* probe_req: only variable items: SSID, Supported rates */
+			u8 variable[];
+		} STRUCT_PACKED probe_req;
+
+		struct {
 			u8 timestamp[8];
 			le16 beacon_int;
 			beacon_cap_t capability;   // 2 byte
 			/* followed by some of SSID, Supported rates,
 			 * FH Params, DS Params, CF Params, IBSS Params */
 			u8 variable[];
-		}STRUCT_PACKED probe_resp;
+		} STRUCT_PACKED probe_resp;
 
 		struct {
 			beacon_cap_t capability;   // 2 byte

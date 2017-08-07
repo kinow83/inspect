@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <errno.h>
+#include <pthread.h>
 #include "types.h"
 #include "format.h"
 #include "osdep/osdep.h"
@@ -32,7 +34,11 @@ void free_module_option(Module_option_t *);
 Module_option_t* new_module_option(const char *args);
 size_t get_module_option_count(Module_option_t *mopt);
 
-const char *get_h80211_type_names(u8 type, u8 subtype);
+const char *get_80211_type_name(u8 type);
+const char *get_80211_subtype_name(u8 type, u8 subtype);
+bool get_80211_type_code(const char *typename, u8 *type);
+bool get_80211_subtype_code(
+		const char *typename, const char *subtypename, u8 *type, u8 *subtype);
 void debug_h80211_type_names(void);
 
 /*
@@ -92,9 +98,10 @@ typedef struct Action_details_t {
 	cv_def(addr2, mac_t);    // mac address2
 	cv_def(addr3, mac_t);    // mac address3
 	cv_def(addr4, mac_t);    // mac address4
-	cv_def(ap_addr, mac_t);  // AP mac address (aka. BSSID)
-	cv_def(st_addr, mac_t);  // ST mac address (station)
+	cv_def(da, mac_t);       // dst address
+	cv_def(sa, mac_t);       // src address
 	cv_def(any_addr, mac_t); // ANY mac address (any address capture)
+	cv_def(deauth_reason, u16); // deauth reason code
 	struct Tag_t *tags;
 	struct Action_details_t *next;
 } Action_details_t;
@@ -149,7 +156,9 @@ bool verify_config(Config_t *config);
 Tag_t *find_tag(Tag_t *first, u8 id);
 Tag_t *find_tag_vendor(Tag_t *first, u8 *oui);
 Tag_t *last_tag(Tag_t *first);
-Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 *data);
+Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 type, u8 *data);
 Tag_t *new_sort_tags(Tag_t *first);
+
+pthread_t run_or_thread(Config_t *, bool, void *(*fp)(void *));
 
 #endif /* SRC_RESOURCE_H_ */

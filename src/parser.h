@@ -32,5 +32,7 @@ void register_parser_module(const char *, Parser_operations_t *);
 void setup_parser_modules(void);
 void free_parser_modules(Parser_module_t *mod);
 void usage_parser_module(void);
+int num_parser_modules(void);
+int num_enabled_parser_modules(void);
 
 #endif

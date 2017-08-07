@@ -360,7 +360,8 @@ parser.c parser.h \
 resource.c resource.h \
 rtx.c rtx.h \
 strings.c strings.h \
-module.c module.h 
+module.c module.h \
+perform.h
 
 inspect_LDADD = match_modules/libmatch.a \
 output_modules/liboutput.a \

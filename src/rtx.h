@@ -20,6 +20,7 @@ typedef struct RTX_operations_t {
 
 typedef struct RTX_module_t {
 	bool enable;
+	bool finished;
 	char *rtx_name;
 	RTX_operations_t op;
 	struct RTX_module_t *next;
@@ -33,7 +34,10 @@ void do_rtx_modules(Config_t *);
 void do_rtx_modules_by_name(Config_t *, const char *);
 void register_rtx_module(const char *, RTX_operations_t *);
 void setup_rtx_modules(void);
-void usage_rts_module(void);
+void usage_rtx_module(void);
+int num_rtx_modules(void);
+int num_enabled_rtx_modules(void);
+void mark_finished_rtx_module(const char *rtx_name);
 
 
 #endif /* SRC_RTX_H_ */
