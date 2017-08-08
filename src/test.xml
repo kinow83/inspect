@@ -7,6 +7,7 @@
 		<enable>1</enable>
 		<name>action 1</name>
 		<interval>100</interval>
+		<interval_count>100</interval_count>
 		<channel>1</channel>
 
 		<shooter>
@@ -39,10 +40,27 @@
 	</action>
 
 	<action>
-		<id>2</id>
+		<id>1</id>
+		<enable>1</enable>
 		<name>action 2</name>
-		<interval>200</interval>
-		<channel>test2</channel>
+		<interval>100</interval>
+		<interval_count>100</interval_count>
+		<channel>2</channel>
+
+		<capture>
+			<id>1</id>
+			<name>capture #1</name>
+			<type>data</type>
+			<subtype>poll</subtype>
+			<da>11:22:33:44:55:66</da>
+		</capture>
+
+		<capture>
+			<id>2</id>
+			<name>capture #2</name>
+			<type>mgnt</type>
+			<sa>11:22:33:44:55:66</sa>
+		</capture>
 	</action>
 
 </config>

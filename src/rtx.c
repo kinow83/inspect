@@ -90,7 +90,8 @@ void do_rtx_modules(Config_t *config)
 	while (idx) {
 		if (idx->enable == true) {
 			idx->finished = false;
-			idx->op.do_rtx(config);
+			idx->op.do_rtx(config, idx);
+			idx->finished = true;
 		}
 		idx = idx->next;
 	}
@@ -104,7 +105,8 @@ void do_rtx_modules_by_name(Config_t *config, const char *name)
 	while (idx) {
 		if ((idx->enable == true) && !strcasecmp(name, idx->rtx_name)) {
 			idx->finished = false;
-			idx->op.do_rtx(config);
+			idx->op.do_rtx(config, idx);
+			idx->finished = true;
 			return;
 		}
 		idx = idx->next;
@@ -189,20 +191,6 @@ int num_enabled_rtx_modules(void)
 	return count;
 }
 
-void mark_finished_rtx_module(const char *rtx_name)
-{
-	RTX_module_t *idx;
-
-	idx = RTXModules;
-	while (idx) {
-		if (!strcasecmp(rtx_name, idx->rtx_name)) {
-			idx->finished = true;
-//			echo.I("mark_finished_rtx_module: %s", idx->rtx_name);
-			break;
-		}
-		idx = idx->next;
-	}
-}
 
 extern void setup_wifi_rtx_module();
 

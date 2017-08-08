@@ -17,8 +17,7 @@
  */
 static char *xmlfilename;
 
-static Tag_t *xml_tag_parsing(
-		const char *filename, Action_details_t *detail, ezxml_t xml)
+static Tag_t *xml_tag_parsing(Action_details_t *detail, ezxml_t xml)
 {
 	Tag_t *tag, *first, *tmp;
 	ezxml_t e;
@@ -40,16 +39,22 @@ static Tag_t *xml_tag_parsing(
 		}
 
 		if (!id) {
-			echo.f("xml_parer: empty 'id' of tag [detail:%s, action:%s, file:%s]",
-					detail->name, detail->action->name, filename);
+			echo.f("xml_parer: missing 'id' of tag "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, detail->action->name,
+					detail->action->config->filename);
 		}
 		if (!len) {
-			echo.f("xml_parer: empty 'len' of tag [tag: %s, detail:%s, action:%s, file:%s]",
-					id, detail->name, detail->action->name, filename);
+			echo.f("xml_parer: missing 'len' of tag "
+					"[id: %s, detail:%s, action:%s, file:%s]",
+					id, detail->name, detail->action->name,
+					detail->action->config->filename);
 		}
 		if (!data) {
-			echo.f("xml_parer: empty 'data' of tag [tag: %s, detail:%s, action:%s, file:%s]",
-					id, detail->name, detail->action->name, filename);
+			echo.f("xml_parer: missing 'data' of tag "
+					"[id: %s, detail:%s, action:%s, file:%s]",
+					id, detail->name, detail->action->name,
+					detail->action->config->filename);
 		}
 
 		tag = alloc_sizeof(Tag_t);
@@ -86,8 +91,7 @@ static Tag_t *xml_tag_parsing(
  * - from ds / to ds
  * - da / sa / addr1 / addr2 / addr3 / addr4 / any_addr
  */
-static Action_details_t *xml_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml, bool is_shooter)
+static Action_details_t *xml_detail_parsing(Action_t *action ,ezxml_t xml, bool is_shooter)
 {
 	ezxml_t e;
 	Action_details_t *detail;
@@ -110,8 +114,9 @@ static Action_details_t *xml_detail_parsing(
 	if (e && e->txt) {
 		detail->id = (u8)atoi(e->txt);
 	} else {
-		echo.f("xml_parer: empty 'id' [detail:%s, action:%s, file:%s]",
-				detail->name, action->name, filename);
+		echo.f("xml_parer: missing 'id' "
+				"[detail:%s, action:%s, file:%s]",
+				detail->name, action->name, action->config->filename);
 	}
 
 	// IEEE 802.11 mac frame type
@@ -122,21 +127,25 @@ static Action_details_t *xml_detail_parsing(
 			typename = get_80211_type_name(detail->type);
 		} else {
 			if (get_80211_type_code(e->txt, &detail->type) == false) {
-				echo.f("xml_parer: unknown 'type' = %s [detail:%s, action:%s, file:%s]",
-						e->txt, detail->name, action->name, filename);
+				echo.f("xml_parer: unknown 'type' = %s "
+						"[detail:%s, action:%s, file:%s]",
+						e->txt, detail->name,
+						action->name, action->config->filename);
 			}
 			typename = e->txt;
 		}
 
 		if(!VERIFY_WLAN_FRAME(detail->type)) {
-			echo.f("xml_parer: invalid 'type=%d' [detail:%s, action:%s, file:%s]",
-					detail->type, detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'type=%d' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->type, detail->name,
+					action->name, action->config->filename);
 		}
-
 		cv_enable(detail->type);
 	} else {
-		echo.f("xml_parer: empty 'type' [detail:%s, action:%s, file:%s]",
-				detail->name, action->name, filename);
+		echo.f("xml_parer: missing 'type' "
+				"[detail:%s, action:%s, file:%s]",
+				detail->name, action->name, action->config->filename);
 	}
 
 	// IEEE 802.11 mac frame subtype
@@ -145,38 +154,46 @@ static Action_details_t *xml_detail_parsing(
 		if (is_number(e->txt)) {
 			detail->subtype = (u8)atoi(e->txt);
 		} else {
-			if (get_80211_subtype_code(typename, e->txt, NULL, &detail->type) == false) {
-				echo.f("xml_parer: unknown 'subtype' = %s [detail:%s, action:%s, file:%s]",
-						e->txt, detail->name, action->name, filename);
+			if (get_80211_subtype_code(typename, e->txt, NULL, &detail->subtype) == false) {
+				echo.f("xml_parer: unknown 'subtype' = %s "
+						"[detail:%s, action:%s, file:%s]",
+						e->txt, detail->name, action->name,
+						action->config->filename);
 			}
 		}
 
 		switch (detail->type) {
 		case WLAN_FC_TYPE_MGMT:
 			if (!VERIFY_WLAN_FRAME_MGNT(detail->subtype)) {
-				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-						detail->subtype, detail->name, action->name, filename);
+				echo.f("xml_parer: invalid 'subtype=%d' "
+						"[detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name,
+						action->name, action->config->filename);
 			}
 			break;
 		case WLAN_FC_TYPE_CTRL:
 			if (!VERIFY_WLAN_FRAME_CTRL(detail->subtype)) {
-				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-						detail->subtype, detail->name, action->name, filename);
+				echo.f("xml_parer: invalid 'subtype=%d' "
+						"[detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name,
+						action->name, action->config->filename);
 			}
 			break;
 		case WLAN_FC_TYPE_DATA:
 			if (!VERIFY_WLAN_FRAME_DATA(detail->subtype)) {
-				echo.f("xml_parer: invalid 'subtype=%d' [detail:%s, action:%s, file:%s]",
-						detail->subtype, detail->name, action->name, filename);
+				echo.f("xml_parer: invalid 'subtype=%d' "
+						"[detail:%s, action:%s, file:%s]",
+						detail->subtype, detail->name,
+						action->name, action->config->filename);
 			}
 			break;
 		}
-
 		cv_enable(detail->subtype);
 	} else {
 		if (is_shooter) {
-			echo.f("xml_parer: empty 'subtype' [detail:%s, action:%s, file:%s]",
-				detail->name, action->name, filename);
+			echo.f("xml_parer: missing 'subtype' "
+					"[detail:%s, action:%s, file:%s]",
+				detail->name, action->name, action->config->filename);
 		}
 	}
 
@@ -188,8 +205,9 @@ static Action_details_t *xml_detail_parsing(
 	} else {
 		if (detail->type == WLAN_FC_TYPE_DATA) {
 			if (is_shooter) {
-				echo.f("xml_parer: empty 'fromds' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
+				echo.f("xml_parer: missing 'fromds' "
+						"[detail:%s, action:%s, file:%s]",
+						detail->name, action->name, action->config->filename);
 			}
 		}
 	}
@@ -200,8 +218,9 @@ static Action_details_t *xml_detail_parsing(
 	} else {
 		if (detail->type == WLAN_FC_TYPE_DATA) {
 			if (is_shooter) {
-				echo.f("xml_parer: empty 'tods' [detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
+				echo.f("xml_parer: missing 'tods' "
+						"[detail:%s, action:%s, file:%s]",
+						detail->name, action->name, action->config->filename);
 			}
 		}
 	}
@@ -209,56 +228,63 @@ static Action_details_t *xml_detail_parsing(
 	e = ezxml_child(xml, "da");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->da)) {
-			echo.f("xml_parer: invalid 'da' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'da' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->da);
 	}
 	e = ezxml_child(xml, "sa");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->sa)) {
-			echo.f("xml_parer: invalid 'sa' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'sa' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->sa);
 	}
 	e = ezxml_child(xml, "any_addr");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->any_addr)) {
-			echo.f("xml_parer: invalid 'any_addr' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'any_addr' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->any_addr);
 	}
 	e = ezxml_child(xml, "addr1");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->addr1)) {
-			echo.f("xml_parer: invalid 'addr1' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'addr1' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->addr1);
 	}
 	e = ezxml_child(xml, "addr2");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->addr2)) {
-			echo.f("xml_parer: invalid 'addr2' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'addr2' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->addr2);
 	}
 	e = ezxml_child(xml, "addr3");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->addr3)) {
-			echo.f("xml_parer: invalid 'addr3' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'addr3' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->addr3);
 	}
 	e = ezxml_child(xml, "addr4");
 	if (e && e->txt) {
 		if (!str2mac(e->txt, detail->addr4)) {
-			echo.f("xml_parer: invalid 'addr4' [detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+			echo.f("xml_parer: invalid 'addr4' "
+					"[detail:%s, action:%s, file:%s]",
+					detail->name, action->name, action->config->filename);
 		}
 		cv_enable(detail->addr4);
 	}
@@ -268,16 +294,17 @@ static Action_details_t *xml_detail_parsing(
 		switch (detail->type) {
 		case WLAN_FC_TYPE_MGMT:
 			if (cv_enabled(detail->da) ^ cv_enabled(detail->sa)) {
-				echo.f("xml_parer: mgnt frame. but empty 'da' or 'sa' "
+				echo.f("xml_parer: mgnt frame. but missing 'da' or 'sa' "
 						"[detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			} else {
+						detail->name, action->name, action->config->filename);
+			}
+			else if (!cv_enabled(detail->da) && !cv_enabled(detail->sa)) {
 				if (!cv_enabled(detail->addr1) ||
 						!cv_enabled(detail->addr2) ||
 						!cv_enabled(detail->addr3)) {
-					echo.f("xml_parer: mgnt frame. but empty 'addr1' ~ 'addr3' "
+					echo.f("xml_parer: mgnt frame. but missing 'addr1~addr3' "
 							"[detail:%s, action:%s, file:%s]",
-							detail->name, action->name, filename);
+							detail->name, action->name, action->config->filename);
 				}
 			}
 			break;
@@ -288,9 +315,9 @@ static Action_details_t *xml_detail_parsing(
 				if (!cv_enabled(detail->addr1) ||
 						!cv_enabled(detail->addr2) ||
 						!cv_enabled(detail->addr3)) {
-					echo.f("xml_parer: ctrl block ack frame. but empty 'addr1' ~ 'addr3' "
+					echo.f("xml_parer: block ack frame. but missing 'addr1~addr3' "
 							"[detail:%s, action:%s, file:%s]",
-							detail->name, action->name, filename);
+							detail->name, action->name, action->config->filename);
 				}
 				break;
 			case WLAN_FC_STYPE_PSPOLL:
@@ -305,16 +332,17 @@ static Action_details_t *xml_detail_parsing(
 			break;
 		case WLAN_FC_TYPE_DATA:
 			if (cv_enabled(detail->da) ^ cv_enabled(detail->sa)) {
-				echo.f("xml_parer: data frame. but empty 'da' or 'sa' "
+				echo.f("xml_parer: data frame. but missing 'da' or 'sa' "
 						"[detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
-			} else {
+						detail->name, action->name, action->config->filename);
+			}
+			else if (!cv_enabled(detail->da) && !cv_enabled(detail->sa)) {
 				if (!cv_enabled(detail->addr1) ||
 						!cv_enabled(detail->addr2) ||
 						!cv_enabled(detail->addr3)) {
-					echo.f("xml_parer: data frame. but empty 'addr1' ~ 'addr3' "
+					echo.f("xml_parer: data frame. but missing 'addr1~addr3' "
 							"[detail:%s, action:%s, file:%s]",
-							detail->name, action->name, filename);
+							detail->name, action->name, action->config->filename);
 				}
 			}
 			// check WDS address
@@ -325,7 +353,7 @@ static Action_details_t *xml_detail_parsing(
 						!cv_enabled(detail->addr4)) {
 					echo.f("xml_parer: invalid WDS address (addr1~addr4) "
 							"[detail:%s, action:%s, file:%s]",
-							detail->name, action->name, filename);
+							detail->name, action->name, action->config->filename);
 				}
 			}
 			if (detail->fromds == 0 && detail->tods == 0) {
@@ -334,7 +362,7 @@ static Action_details_t *xml_detail_parsing(
 						!cv_enabled(detail->addr3)) {
 					echo.f("xml_parer: invalid ADHOC address (addr1~addr3) "
 							"[detail:%s, action:%s, file:%s]",
-							detail->name, action->name, filename);
+							detail->name, action->name, action->config->filename);
 				}
 			}
 			break;
@@ -349,7 +377,7 @@ static Action_details_t *xml_detail_parsing(
 			if (detail->type != WLAN_FC_TYPE_DATA) {
 				echo.f("xml_parer: invalid 'protect'. but not data frame "
 						"[detail:%s, action:%s, file:%s]",
-						detail->name, action->name, filename);
+						detail->name, action->name, action->config->filename);
 			}
 			cv_enable(detail->protect);
 		}
@@ -377,42 +405,41 @@ static Action_details_t *xml_detail_parsing(
 
 	e = ezxml_child(xml, "tags");
 	if (e) {
-		detail->tags = xml_tag_parsing(filename, detail, e);
+		detail->tags = xml_tag_parsing(detail, e);
 		if (detail->tags) {
 			detail->tags = new_sort_tags(detail->tags);
 		} else {
 			echo.f("xml_parer: failed to sort tags "
 					"[detail:%s, action:%s, file:%s]",
-					detail->name, action->name, filename);
+					detail->name, action->name, action->config->filename);
 		}
 	}
 
 	return detail;
 }
 
-static Action_details_t *xml_capture_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml)
+static Action_details_t *xml_capture_detail_parsing(Action_t *action ,ezxml_t xml)
 {
 	bool check_addr = false;
-	return xml_detail_parsing(filename, action, xml, check_addr);
+	return xml_detail_parsing(action, xml, check_addr);
 }
 
-static Action_details_t *xml_shooter_detail_parsing(
-		const char *filename, Action_t *action ,ezxml_t xml)
+static Action_details_t *xml_shooter_detail_parsing(Action_t *action ,ezxml_t xml)
 {
 	bool check_addr = true;
-	return xml_detail_parsing(filename, action, xml, check_addr);
+	return xml_detail_parsing(action, xml, check_addr);
 }
 
-static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
+static Action_t *xml_action_parsing(Config_t *config, ezxml_t xml)
 {
 	Action_details_t *capture = NULL;
 	Action_details_t *tmp, *last;
 	Action_t *action;
 	ezxml_t e;
-	const char *NIL = "<empty>";
 
 	action = alloc_sizeof(Action_t);
+
+	action->config = config;
 
 	// enable
 	e = ezxml_child(xml, "enable");
@@ -428,32 +455,62 @@ static Action_t *xml_action_parsing(const char *filename, ezxml_t xml)
 	e = ezxml_child(xml, "id");
 	if (e && e->txt) {
 		action->id = atoi(e->txt);
+	} else {
+		echo.f("xml_parer: missing action 'id' [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
 	}
 	// action name
 	e = ezxml_child(xml, "name");
 	if (e && e->txt) {
 		action->name = strdup(e->txt);
+	} else {
+		echo.f("xml_parer: missing action 'name' [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
 	}
-	// interval and check mandatory action.
+	// interval
 	e = ezxml_child(xml, "interval");
 	if (e && e->txt) {
 		action->interval = atoi(e->txt);
+	} else {
+		echo.f("xml_parer: missing action 'interval' [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
 	}
-	// channel and check mandatory action.
+	// interval_count
+	e = ezxml_child(xml, "interval_count");
+	if (e && e->txt) {
+		action->interval_count = atoi(e->txt);
+	} else {
+		echo.f("xml_parer: missing action 'interval_count' [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
+	}
+	// channel
 	e = ezxml_child(xml, "channel");
 	if (e && e->txt) {
 		action->channel = (u8)atoi(e->txt);
+	} else {
+		echo.f("xml_parer: missing action 'channel' [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
 	}
 
 	// shooter
 	e = ezxml_child(xml, "shooter");
 	if (e) {
-		action->shooter = xml_shooter_detail_parsing(filename, action ,e);
+		action->shooter = xml_shooter_detail_parsing(action ,e);
+	}
+
+	/*********************************************
+	 *
+	 * TODO:  mandatory <shooter> ?????
+	 *
+	 *********************************************/
+	if (!action->shooter) {
+		echo.f("xml_parer: missing <shooter> [action:%s, config:%s, file:%s]",
+				action->name, config->name, config->filename);
 	}
 
 	// capture
 	for (e = ezxml_child(xml, "capture"); e; e = e->next) {
-		tmp = xml_capture_detail_parsing(filename, action, e);
+		tmp = xml_capture_detail_parsing(action, e);
 
 		if (!action->capture) {
 			action->capture = tmp;
@@ -476,6 +533,7 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
 	u32 version = 0;
 	Config_t *config;
 	Action_t *action;
+	Action_t *a1, *a2;
 
 	config = alloc_sizeof(Config_t);
 
@@ -492,14 +550,16 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
 	e = ezxml_child(xml, "name");
 	if (!e || !e->txt) {
 		free_config(config);
-		echo.f("empty config 'name' [file :%s]", CUR_VERSION, filename);
+		echo.f("missing config 'name' [file :%s]", CUR_VERSION, filename);
 	}
 	config->name = strdup(e->txt);
+
+	config->filename = strdup(filename);
 
 	config->action = NULL;
 	// multi action in config.
 	for (e = ezxml_child(xml, "action"); e; e = e->next) {
-		action = xml_action_parsing(filename, e);
+		action = xml_action_parsing(config, e);
 		if (action) {
 			if (config->action) {
 				action->next = config->action;
@@ -513,7 +573,21 @@ static Config_t *xml_config_parsing(const char *filename, ezxml_t xml)
 
 	if (get_action_count(config) == 0) {
 		free_config(config);
-		echo.f("empty config 'action' [file: %s]", filename);
+		echo.f("missing config 'action' [file: %s]", filename);
+	}
+
+	/*
+	 * check duplication action id
+	 */
+	if (get_action_count(config) > 1) {
+		for (a1 = config->action; a1; a1 = a1->next) {
+			for (a2 = a1->next; a2; a2 = a2->next) {
+				if (a1->id == a2->id) {
+					echo.f("duplicate action id '%d' [file :%s]",
+							CUR_VERSION, filename);
+				}
+			}
+		}
 	}
 
 	return config;
@@ -565,7 +639,7 @@ static void init_xml_parser(char *options)
 	free_splits(chunk, nchunk);
 
 	if (!xmlfilename || strlen(xmlfilename) == 0) {
-		echo.f("error xml_parser: empty filename: %s", options);
+		echo.f("error xml_parser: missing filename: %s", options);
 	}
 
 	echo.i("[xml parser options]");

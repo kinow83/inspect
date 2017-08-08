@@ -19,15 +19,13 @@
 static FILE *ErrFp;
 static char *ErrFilename;
 
-static void do_error_output(Action_t *action, void *output_data)
+static void do_error_output(Action_details_t *detail, void *output_data)
 {
 	char *data = (char *)output_data;
 
 	if (ErrFp) {
 		fprintf(ErrFp, "%s\n", data);
 	}
-
-	mark_finished_output_module(ERROR_OUTPUT_NAME);
 }
 
 static void init_error_output(char *options)
@@ -58,7 +56,7 @@ static void init_error_output(char *options)
 	free_splits(chunk, nchunk);
 
 	if (!ErrFp) {
-		echo.f("error error_output: empty file: %s", options);
+		echo.f("error error_output: missing file: %s", options);
 	}
 
 	echo.i("[error output options]");

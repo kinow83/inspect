@@ -82,6 +82,9 @@ typedef struct Tag_t {
 } Tag_t;
 
 typedef struct Action_t Action_t;
+/************************************
+ * struct Action_details_t
+ ************************************/
 typedef struct Action_details_t {
 	Action_t *action;
 	char *name;
@@ -111,6 +114,9 @@ typedef struct Action_details_t {
  * support multi action.
  */
 typedef struct Config_t Config_t;
+/************************************
+ * struct Action_t
+ ************************************/
 typedef struct Action_t {
 	Config_t *config;
 	u32 id; // sequence number
@@ -118,13 +124,19 @@ typedef struct Action_t {
 	char *name;
 	u8 channel;
 	u32 interval;
+	u32 interval_count;
 	struct Action_t *next;
 
 	Action_details_t *shooter;
 	Action_details_t *capture;
+	void *opaque;
 } Action_t;
 
+/************************************
+ * struct Config_t
+ ************************************/
 typedef struct Config_t  {
+	char *filename;
 	u32 version;  // config version
 	char *name;
 	u32 ext_interval;

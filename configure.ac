@@ -29,6 +29,8 @@ AC_HEADER_STDBOOL
 AC_FUNC_FORK
 AC_FUNC_MALLOC
 
+#AC_DEFINE([HAVE_DEBUG], [1], [debug mode])
+
 AC_CONFIG_FILES([Makefile
 				src/Makefile
 				src/ezxml/Makefile
@@ -37,4 +39,6 @@ AC_CONFIG_FILES([Makefile
 				src/match_modules/Makefile
 				src/rtx_modules/Makefile
 				src/osdep/Makefile])
+
 AC_OUTPUT
+

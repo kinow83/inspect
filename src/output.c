@@ -64,7 +64,7 @@ void finish_output_modules(void)
 /*
  * run all output in output-modules
  */
-void do_output(Action_t *action, void *data)
+void do_output(Action_details_t *detail, void *data)
 {
 	Output_module_t *idx;
 
@@ -72,13 +72,14 @@ void do_output(Action_t *action, void *data)
 	while (idx) {
 		if(idx->enable == true) {
 			idx->finished = false;
-			idx->op.do_output(action, data);
+			idx->op.do_output(detail, data);
+			idx->finished = true;
 		}
 		idx = idx->next;
 	}
 }
 
-void do_output_by_name(Action_t *action, const char *name, void *data)
+void do_output_by_name(Action_details_t *detail, const char *name, void *data)
 {
 	Output_module_t *idx;
 
@@ -86,7 +87,8 @@ void do_output_by_name(Action_t *action, const char *name, void *data)
 	while (idx) {
 		if((idx->enable == true) && !(strcasecmp(name, idx->output_name))) {
 			idx->finished = false;
-			idx->op.do_output(action, data);
+			idx->op.do_output(detail, data);
+			idx->finished = true;
 			break;
 		}
 		idx = idx->next;
@@ -185,21 +187,6 @@ int num_enabled_output_modules(void)
 		idx = idx->next;
 	}
 	return count;
-}
-
-void mark_finished_output_module(const char *output_name)
-{
-	Output_module_t *idx;
-
-	idx = OutputModules;
-	while (idx) {
-		if (!strcasecmp(output_name, idx->output_name)) {
-			idx->finished = true;
-//			echo.I("mark_finished_output_module: %s", idx->output_name);
-			break;
-		}
-		idx = idx->next;
-	}
 }
 
 

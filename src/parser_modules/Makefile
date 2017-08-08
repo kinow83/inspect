@@ -106,7 +106,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libparser_a_AR = $(AR) $(ARFLAGS)
 libparser_a_LIBADD =
-am_libparser_a_OBJECTS = xml_parser.$(OBJEXT)
+am_libparser_a_OBJECTS = libparser_a-xml_parser.$(OBJEXT)
 libparser_a_OBJECTS = $(am_libparser_a_OBJECTS)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
@@ -123,12 +123,12 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp =
 am__depfiles_maybe =
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
@@ -302,6 +302,7 @@ top_srcdir = ../..
 AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = libparser.a
 libparser_a_SOURCES = xml_parser.c
+libparser_a_CFLAGS = -g
 
 #LDADD = ../ezxml/libezxml.a
 AM_CPPFLAGS = -I../
@@ -361,6 +362,12 @@ distclean-compile:
 
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
+libparser_a-xml_parser.o: xml_parser.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libparser_a_CFLAGS) $(CFLAGS) -c -o libparser_a-xml_parser.o `test -f 'xml_parser.c' || echo '$(srcdir)/'`xml_parser.c
+
+libparser_a-xml_parser.obj: xml_parser.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libparser_a_CFLAGS) $(CFLAGS) -c -o libparser_a-xml_parser.obj `if test -f 'xml_parser.c'; then $(CYGPATH_W) 'xml_parser.c'; else $(CYGPATH_W) '$(srcdir)/xml_parser.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

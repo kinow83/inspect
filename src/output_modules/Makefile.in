@@ -106,8 +106,8 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 liboutput_a_AR = $(AR) $(ARFLAGS)
 liboutput_a_LIBADD =
-am_liboutput_a_OBJECTS = wifi_xml_output.$(OBJEXT) \
-	error_output.$(OBJEXT)
+am_liboutput_a_OBJECTS = liboutput_a-wifi_xml_output.$(OBJEXT) \
+	liboutput_a-error_output.$(OBJEXT)
 liboutput_a_OBJECTS = $(am_liboutput_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -124,12 +124,12 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp =
 am__depfiles_maybe =
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
@@ -303,6 +303,7 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = liboutput.a
 liboutput_a_SOURCES = wifi_xml_output.c error_output.c
+liboutput_a_CFLAGS = -g
 
 #LDADD = ../ezxml/libezxml.a
 AM_CPPFLAGS = -I../
@@ -362,6 +363,18 @@ distclean-compile:
 
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
+liboutput_a-wifi_xml_output.o: wifi_xml_output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboutput_a_CFLAGS) $(CFLAGS) -c -o liboutput_a-wifi_xml_output.o `test -f 'wifi_xml_output.c' || echo '$(srcdir)/'`wifi_xml_output.c
+
+liboutput_a-wifi_xml_output.obj: wifi_xml_output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboutput_a_CFLAGS) $(CFLAGS) -c -o liboutput_a-wifi_xml_output.obj `if test -f 'wifi_xml_output.c'; then $(CYGPATH_W) 'wifi_xml_output.c'; else $(CYGPATH_W) '$(srcdir)/wifi_xml_output.c'; fi`
+
+liboutput_a-error_output.o: error_output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboutput_a_CFLAGS) $(CFLAGS) -c -o liboutput_a-error_output.o `test -f 'error_output.c' || echo '$(srcdir)/'`error_output.c
+
+liboutput_a-error_output.obj: error_output.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboutput_a_CFLAGS) $(CFLAGS) -c -o liboutput_a-error_output.obj `if test -f 'error_output.c'; then $(CYGPATH_W) 'error_output.c'; else $(CYGPATH_W) '$(srcdir)/error_output.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

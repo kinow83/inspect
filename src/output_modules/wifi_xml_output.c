@@ -16,13 +16,15 @@
 static u32 xid;
 static char *prefix;
 
-static void do_wifi_xml_output(Action_t *action, void *output_data)
+static void do_wifi_xml_output(Action_details_t *detail, void *output_data)
 {
 	ezxml_t xml;
-	ezxml_t child;
+	Action_t *action;
 	Output_wifi_data_t *data;
 	h80211_hdr_t *h;
 	h80211_mgmt_t *m;
+
+	action = detail->action;
 
 	data = (Output_wifi_data_t *)output_data;
 	h = (h80211_hdr_t *)data->h80211;
@@ -30,34 +32,35 @@ static void do_wifi_xml_output(Action_t *action, void *output_data)
 
 	xid++;
 
-	xml = ezxml_new("capture");
-	child = ezxml_add_child(xml, "result", 0);
-	ezxml_set_attr(child, "config",  strdup(action->config->name));
-	ezxml_set_attr(child, "action",  strdup(action->name));
-	ezxml_set_attr(child, "xid",     new_ltoa(xid, 10));
-	ezxml_set_attr(child, "sec",     new_ltoa(data->tv.tv_sec, 10));
-	ezxml_set_attr(child, "usec",    new_ltoa(data->tv.tv_usec, 10));
-//	ezxml_set_attr(child, "elapsed", new_ltoa(usec2msec(&diff), 10));
-	ezxml_set_attr(child, "pwr",     new_itoa(data->ri->ri_power, 10));
-	ezxml_set_attr(child, "type",    new_itoa(GET_WLAN_TYPE(h), 10));
-	ezxml_set_attr(child, "subtype", new_itoa(GET_WLAN_SUBTYPE(h), 10));
-	ezxml_set_attr(child, "fromds",  new_itoa(GET_WLAN_FROMDS(h), 10));
-	ezxml_set_attr(child, "tods",    new_itoa(GET_WLAN_TODS(h), 10));
-	ezxml_set_attr(child, "seq",     new_itoa(h->fragseq.seq, 10));
-	ezxml_set_attr(child, "addr1",   new_macstr(h->addr.u.an.addr1));
-	ezxml_set_attr(child, "addr2",   new_macstr(h->addr.u.an.addr2));
-	ezxml_set_attr(child, "addr3",   new_macstr(h->addr.u.an.addr3));
+	xml = ezxml_new("output");
+	ezxml_set_attr(xml, "config",  strdup(action->config->name));
+	ezxml_set_attr(xml, "action",  strdup(action->name));
+	ezxml_set_attr(xml, "xid",     new_ltoa(xid, 10));
+	ezxml_set_attr(xml, "sec",     new_ltoa(data->tv.tv_sec, 10));
+	ezxml_set_attr(xml, "usec",    new_ltoa(data->tv.tv_usec, 10));
+//	ezxml_set_attr(xml, "elapsed", new_ltoa(usec2msec(&data->tv), 10));
+	ezxml_set_attr(xml, "pwr",     new_itoa(data->ri->ri_power, 10));
+	ezxml_set_attr(xml, "type",    new_itoa(GET_WLAN_TYPE(h), 10));
+	ezxml_set_attr(xml, "subtype", new_itoa(GET_WLAN_SUBTYPE(h), 10));
+	ezxml_set_attr(xml, "fromds",  new_itoa(GET_WLAN_FROMDS(h), 10));
+	ezxml_set_attr(xml, "tods",    new_itoa(GET_WLAN_TODS(h), 10));
+	ezxml_set_attr(xml, "seq",     new_itoa(h->fragseq.seq, 10));
+	ezxml_set_attr(xml, "addr1",   new_macstr(h->addr.u.n.addr1));
+	ezxml_set_attr(xml, "addr2",   new_macstr(h->addr.u.n.addr2));
+	ezxml_set_attr(xml, "addr3",   new_macstr(h->addr.u.n.addr3));
 
 	if (GET_WLAN_TYPE(h) == WLAN_FC_TYPE_DATA &&
 			GET_WLAN_FROMDS(h) == 1 && GET_WLAN_TODS(h) == 1) {
-		ezxml_set_attr(child, "addr4",   new_macstr(h->addr4));
+		ezxml_set_attr(xml, "addr4",   new_macstr(h->addr4));
 	}
 	if (GET_WLAN_TYPE(h) == WLAN_FC_TYPE_MGMT &&
 			GET_WLAN_SUBTYPE(h) == WLAN_FC_STYPE_DEAUTH) {
-		ezxml_set_attr(child, "deauth",   new_itoa(ntohs(m->u.deauth.reason), 10));
+		ezxml_set_attr(xml, "deauth",   new_itoa(ntohs(m->u.deauth.reason), 10));
 	}
 
-	mark_finished_output_module(WIFI_XML_OUTPUT_NAME);
+	echo.i("%s", ezxml_toxml(xml));
+
+	ezxml_free(xml);
 }
 
 static void init_wifi_xml_output(char *options)
@@ -84,7 +87,7 @@ static void init_wifi_xml_output(char *options)
 	free_splits(chunk, nchunk);
 
 	if (!prefix || strlen(prefix) == 0) {
-		echo.f("error xml_output: empty prefix: %s", options);
+		echo.f("error xml_output: missing prefix: %s", options);
 	}
 
 	xid = 0;

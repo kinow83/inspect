@@ -2,6 +2,7 @@
 #define _INSPECT__TYPES_
 
 #include <linux/types.h>
+#include "config.h"
 #include "perform.h"
 
 typedef uint64_t u64;

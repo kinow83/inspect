@@ -354,8 +354,11 @@ static int linux_nl80211_init(struct nl80211_state *state)
 static void nl80211_cleanup(struct nl80211_state *state)
 {
     genl_family_put(state->nl80211);
+    state->nl80211 = NULL;
     nl_cache_free(state->nl_cache);
+    state->nl_cache = NULL;
     nl_socket_free(state->nl_sock);
+    state->nl_sock = NULL;
 }
 
 /* Callbacks */
@@ -612,7 +615,7 @@ static int linux_read(struct wif *wi, unsigned char *buf, int count, struct rx_i
 		if ( errno == EAGAIN) {
 			return (0);
 		}
-//		perror("read failed");
+		perror("read failed");
 		return (-1);
 	}
 
@@ -2029,20 +2032,34 @@ static void do_free(struct wif *wi)
 		free(wi);
 		return;
 	}
-	if (pl->wlanctlng)
+	if (pl->wlanctlng) {
 		free(pl->wlanctlng);
-	if (pl->iwpriv)
+		pl->wlanctlng = NULL;
+	}
+	if (pl->iwpriv) {
 		free(pl->iwpriv);
-	if (pl->iwconfig)
+		pl->iwpriv = NULL;
+	}
+	if (pl->iwconfig) {
 		free(pl->iwconfig);
-	if (pl->ifconfig)
+		pl->iwconfig = NULL;
+	}
+	if (pl->ifconfig) {
 		free(pl->ifconfig);
-	if (pl->wl)
+		pl->ifconfig = NULL;
+	}
+	if (pl->wl) {
 		free(pl->wl);
-	if (pl->main_if)
+		pl->wl = NULL;
+	}
+	if (pl->main_if) {
 		free(pl->main_if);
+		pl->main_if = NULL;
+	}
 
 	free(pl);
+	wi->wi_priv = NULL;
+
 	free(wi);
 }
 

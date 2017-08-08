@@ -704,12 +704,12 @@ typedef struct h80211_mgmt_t {
 			beacon_cap_t capability;   // 2 byte
 			/* followed by some of SSID, Supported rates,
 			 * FH Params, DS Params, CF Params, IBSS Params */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED beacon;       // total: 12 byte
 
 		struct {
 			/* probe_req: only variable items: SSID, Supported rates */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED probe_req;
 
 		struct {
@@ -718,14 +718,14 @@ typedef struct h80211_mgmt_t {
 			beacon_cap_t capability;   // 2 byte
 			/* followed by some of SSID, Supported rates,
 			 * FH Params, DS Params, CF Params, IBSS Params */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED probe_resp;
 
 		struct {
 			beacon_cap_t capability;   // 2 byte
 			u16 listen_int;            // 2 byte
 			/* followed by SSID and Supported rates */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED assoc_req;    // total: 4 byte
 
 		struct {
@@ -733,7 +733,7 @@ typedef struct h80211_mgmt_t {
 			u16 listen_int;            // 2 byte
 			u8 cur_ap[6];              // 6 byte
 			/* followed by SSID and Supported rates */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED reassoc_req;  // total: 10 byte
 
 		struct {
@@ -741,7 +741,7 @@ typedef struct h80211_mgmt_t {
 			u16 status;                // 2 byte, 0x0000 = successful
 			u16 assoc_id;              // 2 byte
 			/* followed by Supported rates */
-			u8 variable[];
+			u8 variable[0];
 		} STRUCT_PACKED assoc_resp, reassoc_resp;   // total: 6 byte
 
 		struct {
@@ -749,17 +749,17 @@ typedef struct h80211_mgmt_t {
 			le16 xid;                 // 2 byte
 			le16 status;              // 2 byte (0x0000: successful)
 			/* possibly followed by Challenge text */
-			u8   variable[];
+			u8 variable[0];
 		} STRUCT_PACKED auth;        // total: 6 byte
 
 		struct {
 			le16 reason;              // 2 byte
-			u8 variable[];            //
+			u8 variable[0];
 		} STRUCT_PACKED deauth;      // total: 2 byte
 
 		struct {
 			le16 reason;              // 2 byte
-			u8 variable[];            //
+			u8 variable[0];
 		} STRUCT_PACKED disassoc;    // total: 2 byte
 
 		struct {
@@ -782,7 +782,7 @@ typedef struct h80211_mgmt_t {
 					u8 action_code;
 					u8 dialog_token;
 					u8 status_code;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED wmm_action;
 				struct {
 					u8 action_code;
@@ -796,14 +796,14 @@ typedef struct h80211_mgmt_t {
 					u8 action;
 					u8 sta_addr[ETH_ALEN];
 					u8 target_ap_addr[ETH_ALEN];
-					u8 variable[]; /* FT Request */
+					u8 variable[0]; /* FT Request */
 				} STRUCT_PACKED ft_action_req;
 				struct {
 					u8 action;
 					u8 sta_addr[ETH_ALEN];
 					u8 target_ap_addr[ETH_ALEN];
 					le16 status_code;
-					u8 variable[]; /* FT Request */
+					u8 variable[0]; /* FT Request */
 				} STRUCT_PACKED ft_action_resp;
 				struct {
 					u8 action;
@@ -816,23 +816,23 @@ typedef struct h80211_mgmt_t {
 				struct {
 					u8 action;
 					u8 dialogtoken;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED wnm_sleep_req;
 				struct {
 					u8 action;
 					u8 dialogtoken;
 					le16 keydata_len;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED wnm_sleep_resp;
 				struct {
 					u8 action;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED public_action;
 				struct {
 					u8 action; /* 9 */
 					u8 oui[3];
 					/* Vendor-specific content */
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED vs_public_action;
 				struct {
 					u8 action; /* 7 */
@@ -844,7 +844,7 @@ typedef struct h80211_mgmt_t {
 					 * Session Information URL (optional),
 					 * BSS Transition Candidate List
 					 * Entries */
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED bss_tm_req;
 				struct {
 					u8 action; /* 8 */
@@ -854,7 +854,7 @@ typedef struct h80211_mgmt_t {
 					/* Target BSSID (optional),
 					 * BSS Transition Candidate List
 					 * Entries (optional) */
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED bss_tm_resp;
 				struct {
 					u8 action; /* 6 */
@@ -862,20 +862,20 @@ typedef struct h80211_mgmt_t {
 					u8 query_reason;
 					/* BSS Transition Candidate List
 					 * Entries (optional) */
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED bss_tm_query;
 				struct {
 					u8 action; /* 15 */
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED slf_prot_action;
 				struct {
 					u8 action;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED fst_action;
 				struct {
 					u8 action;
 					u8 dialog_token;
-					u8 variable[];
+					u8 variable[0];
 				} STRUCT_PACKED rrm;
 			} u;
 		} STRUCT_PACKED action;

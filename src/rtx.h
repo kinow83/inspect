@@ -11,9 +11,10 @@
 #include <stdbool.h>
 #include "resource.h"
 
+typedef struct RTX_module_t RTX_module_t;
 typedef struct RTX_operations_t {
 	void (*init_rtx)(char *);
-	void (*do_rtx)(Config_t *);
+	void (*do_rtx)(Config_t *, RTX_module_t *);
 	void (*finish_rtx)(void);
 	const char* (*usage_rtx)(void);
 } RTX_operations_t;
@@ -37,7 +38,6 @@ void setup_rtx_modules(void);
 void usage_rtx_module(void);
 int num_rtx_modules(void);
 int num_enabled_rtx_modules(void);
-void mark_finished_rtx_module(const char *rtx_name);
 
 
 #endif /* SRC_RTX_H_ */

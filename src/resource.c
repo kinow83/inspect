@@ -177,6 +177,8 @@ bool get_80211_subtype_code(const char *typename, const char *subtypename, u8 *t
 	if (type) *type = ntype;
 	if (subtype) *subtype = nsubtype;
 
+//	echo.I("type: %s %d, subtype: %s %d", typename, ntype, subtypename, nsubtype);
+
 	return true;
 }
 
@@ -368,7 +370,9 @@ void free_config(Config_t *config)
 	if (!config) return;
 
 	free_actions(config->action);
-
+	if (config->filename) {
+		free(config->filename);
+	}
 	if (config->name) {
 		free(config->name);
 	}
@@ -586,7 +590,6 @@ Action_t *get_max_interval(Config_t *config)
 	}
 	return NULL;
 }
-
 
 int get_action_count(Config_t *config)
 {

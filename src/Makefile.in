@@ -370,7 +370,7 @@ rtx_modules/librtx.a \
 ezxml/libezxml.a \
 osdep/libosdep.a
 
-inspect_CFLAGS = -g
+inspect_CFLAGS = -g -DDEBUG
 all: all-recursive
 
 .SUFFIXES:

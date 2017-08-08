@@ -77,17 +77,17 @@ void free_match_moduels(Match_module_t *mod)
 /*
  * Fast matching for all match modules.
  */
-Action_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_info *ri)
+Action_details_t *do_match_modules(Config_t *config, u8 *h80211, size_t h80211len, struct rx_info *ri)
 {
 	Match_module_t *idx;
-	Action_t *matched;
+	Action_details_t *matched;
 
 	idx = MatchModules;
 	while (idx) {
 		if (idx->enable == true) {
 			idx->finished = false;
 			matched = idx->op.do_match(config, h80211, h80211len, ri);
-
+			idx->finished = true;
 			if (matched) {
 				return matched;
 			}
@@ -97,17 +97,19 @@ Action_t *do_match(Config_t *config, u8 *h80211, size_t h80211len, struct rx_inf
 	return NULL;
 }
 
-Action_t *do_match_by_name(Config_t *config,
+Action_details_t *do_match_by_name(Config_t *config,
 		const char *name, u8 *h80211, size_t h80211len, struct rx_info *ri)
 {
 	Match_module_t *idx;
-	Action_t *matched;
+	Action_details_t *matched;
 
 	idx = MatchModules;
 	while (idx) {
 		if ((idx->enable == true) && !strcasecmp(name, idx->match_name)) {
 			idx->finished = false;
 			matched = idx->op.do_match(config, h80211, h80211len, ri);
+			idx->finished = true;
+			echo.I("matched: action: %s", idx->match_name);
 			return matched;
 		}
 		idx = idx->next;
@@ -191,21 +193,6 @@ int num_enabled_match_modules(void)
 		idx = idx->next;
 	}
 	return count;
-}
-
-void mark_finished_match_module(const char *match_name)
-{
-	Match_module_t *idx;
-
-	idx = MatchModules;
-	while (idx) {
-		if (!strcasecmp(match_name, idx->match_name)) {
-			idx->finished = true;
-//			echo.I("mark_finished_match_module: %s", idx->match_name);
-			break;
-		}
-		idx = idx->next;
-	}
 }
 
 

@@ -106,7 +106,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 librtx_a_AR = $(AR) $(ARFLAGS)
 librtx_a_DEPENDENCIES = ../osdep/libosdep.a
-am_librtx_a_OBJECTS = wifi_rtx.$(OBJEXT)
+am_librtx_a_OBJECTS = librtx_a-wifi_rtx.$(OBJEXT)
 librtx_a_OBJECTS = $(am_librtx_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -123,12 +123,12 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp =
 am__depfiles_maybe =
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
@@ -302,6 +302,7 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = librtx.a
 librtx_a_SOURCES = wifi_rtx.c
+librtx_a_CFLAGS = -g
 librtx_a_LIBADD = ../osdep/libosdep.a
 AM_CPPFLAGS = -I../
 all: all-am
@@ -360,6 +361,12 @@ distclean-compile:
 
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
+librtx_a-wifi_rtx.o: wifi_rtx.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(librtx_a_CFLAGS) $(CFLAGS) -c -o librtx_a-wifi_rtx.o `test -f 'wifi_rtx.c' || echo '$(srcdir)/'`wifi_rtx.c
+
+librtx_a-wifi_rtx.obj: wifi_rtx.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(librtx_a_CFLAGS) $(CFLAGS) -c -o librtx_a-wifi_rtx.obj `if test -f 'wifi_rtx.c'; then $(CYGPATH_W) 'wifi_rtx.c'; else $(CYGPATH_W) '$(srcdir)/wifi_rtx.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

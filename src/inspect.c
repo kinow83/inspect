@@ -167,10 +167,16 @@ int main(int argc, char **argv)
 	do_rtx_modules(config);
 
 
+	do_exit = true;
+
 
 done:
+	echo.d("[free config]");
 	free_config(config);
+	echo.d("[finish modules]");
 	finish_modules();
+	echo.d("[free modules]");
 	free_modules();
+	echo.d("[free module option list]");
 	free_module_option_list(&mopt_list);
 }

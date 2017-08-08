@@ -97,12 +97,6 @@ Config_t *do_parser_modules(const char *parser_name)
 			// sort action by 'no'
 			sort_actions(&config->action);
 
-			// allocate action's config to this config.
-			action = config->action;
-			while (action) {
-				action->config = config;
-				action = action->next;
-			}
 			return config;
 		}
 		idx = idx->next;

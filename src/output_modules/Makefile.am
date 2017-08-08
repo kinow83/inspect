@@ -7,7 +7,9 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = liboutput.a
 
 liboutput_a_SOURCES = wifi_xml_output.c error_output.c
+liboutput_a_CFLAGS = -g
 
 #LDADD = ../ezxml/libezxml.a
 
 AM_CPPFLAGS = -I../
+

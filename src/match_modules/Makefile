@@ -106,7 +106,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libmatch_a_AR = $(AR) $(ARFLAGS)
 libmatch_a_LIBADD =
-am_libmatch_a_OBJECTS = wifi_match.$(OBJEXT)
+am_libmatch_a_OBJECTS = libmatch_a-wifi_match.$(OBJEXT)
 libmatch_a_OBJECTS = $(am_libmatch_a_OBJECTS)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
@@ -123,12 +123,12 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp =
 am__depfiles_maybe =
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
@@ -302,6 +302,7 @@ top_srcdir = ../..
 AUTOMAKE_OPTIONS = foreign no-dependencies
 noinst_LIBRARIES = libmatch.a
 libmatch_a_SOURCES = wifi_match.c
+libmatch_a_CFLAGS = -g
 AM_CPPFLAGS = -I../
 all: all-am
 
@@ -359,6 +360,12 @@ distclean-compile:
 
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
+
+libmatch_a-wifi_match.o: wifi_match.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmatch_a_CFLAGS) $(CFLAGS) -c -o libmatch_a-wifi_match.o `test -f 'wifi_match.c' || echo '$(srcdir)/'`wifi_match.c
+
+libmatch_a-wifi_match.obj: wifi_match.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libmatch_a_CFLAGS) $(CFLAGS) -c -o libmatch_a-wifi_match.obj `if test -f 'wifi_match.c'; then $(CYGPATH_W) 'wifi_match.c'; else $(CYGPATH_W) '$(srcdir)/wifi_match.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
