@@ -1,5 +1,5 @@
 /*
- * aircrack_utils.c
+ * iw.c
  *
  *  Created on: 2017. 8. 8.
  *      Author: root
@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <stdbool.h>
 #include <sys/wait.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -17,13 +16,19 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <stdarg.h>
-#include "strings.h"
+#include "string_util.h"
+#include "cmdutil.h"
+#include "iw.h"
+
 
 /* Macros for min/max.  */
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MAX_CMD_LINE 1024
 
+/*
+ * linux search file
+ */
 static char *linux_search_inside(const char *dir, const char *filename)
 {
 	char *ret;
@@ -73,13 +78,13 @@ char *linux_path(const char *cmd)
 	char *path;
 	int i, nbelems;
 	static const char *paths[] = {
-			".",
 			"/sbin",
 			"/usr/sbin",
 			"/usr/local/sbin",
 			"/bin",
 			"/usr/bin",
 			"/usr/local/bin",
+			".",
 	};
 
 	nbelems = sizeof(paths) / sizeof(char*);
@@ -92,34 +97,8 @@ char *linux_path(const char *cmd)
 	return NULL;
 }
 
-#define MISS_STR_STR (((void *)0)-1)
-static char *str_str(const char *str, const char *needle)
+void free_iw_info(struct iw_info_t *list)
 {
-	int i, cnt;
-	char *pos;
-	char *min = MISS_STR_STR;
-
-	cnt = strlen(needle);
-
-	for (i=0; i<cnt; i++) {
-		pos = strchr(str, needle[i]);
-		if (pos) {
-			if (pos < min) {
-				min = pos;
-			}
-		}
-	}
-	return min;
-}
-
-
-
-struct iw_info_t {
-	char dev[32];
-	struct iw_info_t *next;
-};
-
-void free_iw_info(struct iw_info_t *list) {
 	struct iw_info_t *tmp, *cur;
 
 	cur = list;
@@ -130,7 +109,8 @@ void free_iw_info(struct iw_info_t *list) {
 	}
 }
 
-size_t num_iw_info(struct iw_info_t *list) {
+size_t num_iw_info(struct iw_info_t *list)
+{
 	struct iw_info_t *cur;
 	size_t cnt = 0;
 
@@ -158,7 +138,7 @@ struct iw_info_t *get_wifi_devs()
 
 	snprintf(cmd, sizeof(cmd), "%s 2>/dev/null | grep 'IEEE 802.11'", path);
 	free(path);
-//	printf("cmd: %s\n", cmd);
+	printf("cmd: %s\n", cmd);
 
 	out = popen(cmd, "r");
 	if (!out) return NULL;
@@ -202,9 +182,9 @@ struct iw_info_t *get_wifi_monitor_devs(const char *iw_prefix)
 		return NULL;
 	}
 
-	snprintf(cmd, sizeof(cmd), "%s 2>/dev/null | grep ^%s | awk '{print $1}'", path, iw_prefix);
+	snprintf(cmd, sizeof(cmd), "%s 2>/dev/null | grep %s | awk '{print $1}'", path, iw_prefix);
 	free(path);
-//	printf("cmd: %s\n", cmd);
+	printf("cmd: %s\n", cmd);
 
 	out = popen(cmd, "r");
 	if (!out) return NULL;
@@ -245,7 +225,7 @@ bool airmon_ng_start(const char *dev)
 		return false;
 	}
 	snprintf(cmd, sizeof(cmd), "%s start %s 1>&2 > /dev/null", path, dev);
-//	printf("%s\n", cmd);
+	printf("%s\n", cmd);
 
 	return system(cmd) ? false : true;
 }
@@ -260,7 +240,7 @@ bool airmon_ng_stop(const char *dev)
 		return false;
 	}
 	snprintf(cmd, sizeof(cmd), "%s stop %s 1>&2 > /dev/null", path, dev);
-//	printf("%s\n", cmd);
+	printf("%s\n", cmd);
 
 	return system(cmd) ? false : true;
 }
@@ -331,13 +311,83 @@ bool airmon_ng_wi_start(struct iw_info_t *list)
 	return ok;
 }
 
+static bool run_iw(int argc, char **argv)
+{
+	struct iw_info_t *list, *cur;
+
+	if (argc == 1) {
+		if (!strcmp("start", argv[0])) {
+			list = get_wifi_devs();
+			/*
+			 * airmon-ng start
+			 */
+			airmon_ng_wi_start(list);
+			free_iw_info(list);
+			return true;
+		}
+		else if (!strcmp("stop", argv[0])) {
+			list = get_wifi_monitor_devs("mon");
+			/*
+			 * airmon-ng stop
+			 */
+			airmon_ng_wi_stop(list);
+			free_iw_info(list);
+			return true;
+		}
+		else if (!strcmp("list", argv[0])) {
+			/*
+			 * print 'all' interface
+			 */
+			printf(" [all interfaces]\n");
+			{
+				list = get_wifi_devs();
+				cur = list;
+				while (cur) {
+					printf("\t dev = %s\n", cur->dev);
+					cur = cur->next;
+				}
+				free_iw_info(list);
+			}
+			/*
+			 * print 'monX' interface
+			 */
+			printf(" [monitor interfaces]\n");
+			{
+				list = get_wifi_monitor_devs("mon");
+				cur = list;
+				while (cur) {
+					printf("\t monX = %s\n", cur->dev);
+					cur = cur->next;
+				}
+				free_iw_info(list);
+			}
+		}
+	}
+	return false;
+}
+
+static void usage_iw()
+{
+	printf("\t [iw] <start|stop|list [mon|all]>\n");
+}
+
+Cmd_util_t iw = {
+		.name = "iw",
+		.init = NULL,
+		.run = run_iw,
+		.finish = NULL,
+		.usage = usage_iw,
+};
+
+
+#if 0
 int main()
 {
 	struct iw_info_t *list, *cur;
 
 	list = get_wifi_monitor_devs("mon");
 	airmon_ng_wi_stop(list);
-	free(list);
+	free_iw_info(list);
 
 	list = get_wifi_devs();
 
@@ -359,3 +409,4 @@ int main()
 
 	return 0;
 }
+#endif

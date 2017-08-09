@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "types.h"
 #include "format.h"
 #include "version.h"
 #include "osdep/osdep.h"
 #include "resource.h"
+#include "typedef.h"
 
 
 typedef struct Parser_operations_t {

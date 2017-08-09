@@ -23,7 +23,7 @@
 #include "resource.h"
 #include "log.h"
 #include "module.h"
-#include "strings.h"
+#include "string_util.h"
 
 bool do_exit;
 

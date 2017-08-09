@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "strings.h"
 #include "format.h"
 #include "log.h"
 #include "alloc.h"
 #include "output.h"
+#include "string_util.h"
 
 static Output_module_t *OutputModules;
 

@@ -13,16 +13,16 @@
 #include "resource.h"
 #include "log.h"
 #include "alloc.h"
-#include "strings.h"
 #include "h80211_struct.h"
+#include "string_util.h"
 
-static const char* h80211_frame_string[] = {
+const char* h80211_frame_string[] = {
 	"mgnt",
 	"ctrl",
 	"data",
 };
 
-static const char* h80211_mgnt_string[] = {
+const char* h80211_mgnt_string[] = {
 	"assoc_req",
 	"assoc_resp",
 	"reassoc_req",
@@ -39,7 +39,7 @@ static const char* h80211_mgnt_string[] = {
 	"action",
 };
 
-static const char* h80211_ctrl_string[] = {
+const char* h80211_ctrl_string[] = {
 	"","","","","","","","",
 	"block_ack_req",
 	"block_ack",

@@ -4,11 +4,11 @@
 #
 AUTOMAKE_OPTIONS = foreign no-dependencies
 
-SUBDIRS = osdep ezxml match_modules output_modules parser_modules rtx_modules
+SUBDIRS = osdep ezxml match_modules output_modules parser_modules rtx_modules cmdutil
 
-bin_PROGRAMS = inspect
+sbin_PROGRAMS = inspect
 
-inspect_SOURCES = h80211_struct.h version.h types.h format.h \
+inspect_SOURCES = h80211_struct.h version.h typedef.h format.h \
 alloc.c alloc.h \
 convert.c convert.h \
 inspect.c \
@@ -18,7 +18,7 @@ output.c output.h \
 parser.c parser.h \
 resource.c resource.h \
 rtx.c rtx.h \
-strings.c strings.h \
+string_util.c string_util.h \
 module.c module.h \
 perform.h
 
@@ -32,3 +32,5 @@ osdep/libosdep.a
 
 inspect_CFLAGS = -g -DDEBUG
 
+bashcompletiondir = /etc/bash_completion.d/
+bashcompletion_DATA = bash_completion/inspect

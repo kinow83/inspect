@@ -8,8 +8,31 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "strings.h"
 
+#include "string_util.h"
+
+/*
+ * wrapper function for strstr.
+ * multi needles
+ */
+char *str_str(const char *str, const char *needle)
+{
+	int i, cnt;
+	char *pos;
+	char *min = MISS_STR_STR;
+
+	cnt = strlen(needle);
+
+	for (i=0; i<cnt; i++) {
+		pos = strchr(str, needle[i]);
+		if (pos) {
+			if (pos < min) {
+				min = pos;
+			}
+		}
+	}
+	return min;
+}
 
 bool is_number(const char *str)
 {

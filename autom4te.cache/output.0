@@ -17682,7 +17682,7 @@ fi
 
 #AC_DEFINE([HAVE_DEBUG], [1], [debug mode])
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/ezxml/Makefile src/output_modules/Makefile src/parser_modules/Makefile src/match_modules/Makefile src/rtx_modules/Makefile src/osdep/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/ezxml/Makefile src/output_modules/Makefile src/parser_modules/Makefile src/match_modules/Makefile src/rtx_modules/Makefile src/osdep/Makefile src/cmdutil/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -18810,6 +18810,7 @@ do
     "src/match_modules/Makefile") CONFIG_FILES="$CONFIG_FILES src/match_modules/Makefile" ;;
     "src/rtx_modules/Makefile") CONFIG_FILES="$CONFIG_FILES src/rtx_modules/Makefile" ;;
     "src/osdep/Makefile") CONFIG_FILES="$CONFIG_FILES src/osdep/Makefile" ;;
+    "src/cmdutil/Makefile") CONFIG_FILES="$CONFIG_FILES src/cmdutil/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

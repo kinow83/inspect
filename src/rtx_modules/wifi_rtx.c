@@ -24,7 +24,7 @@
 #include "match.h"
 #include "output.h"
 #include "alloc.h"
-#include "strings.h"
+#include "string_util.h"
 #include "rtx.h"
 #include "match.h"
 #include "h80211_struct.h"
@@ -237,7 +237,27 @@ static void finish_wifi_shooter_rtx(void)
 	}
 }
 
-static int build_wifi_shooter_packet(Action_details_t *detail, u8 *buf, int buflen)
+Action_details_t DefaultActionDetail = {
+		.version = 0,
+		.ibss = 0,
+		.protect = 0,
+		.duration = 0,
+		.type = 0,
+		.subtype = 0,
+		.tods = 0,
+		.fromds = 0,
+		.addr1 = {0x00, },
+		.addr2 = {0x00, },
+		.addr3 = {0x00, },
+		.addr4 = {0x00, },
+		.da = {0x00, },
+		.sa = {0x00, },
+		.any_addr = {0x00, },
+		.deauth_reason = 0,
+};
+
+static int build_wifi_shooter_packet(
+		Action_details_t *detail, u8 *buf, int buflen)
 {
 	int nbytes = 0;
 
@@ -247,17 +267,148 @@ static int build_wifi_shooter_packet(Action_details_t *detail, u8 *buf, int bufl
 	h = (h80211_hdr_t *)buf;
 	m = (h80211_mgmt_t *)h;
 
-	h->fc.version = detail->version;
-	h->fc.type = detail->type;
-	h->fc.subtype = detail->subtype;
-	h->duration = ntohs(detail->duration);
-	h->fc.flags.protect = detail->protect;
-	if (detail->protect) {
+	// version
+	if (cv_enabled(detail->version)) {
+		h->fc.version = detail->version;
+	} else {
+		h->fc.version = DefaultActionDetail.version;
+	}
+	// ibss
+	if (cv_enabled(detail->type) && cv_enabled(detail->subtype)) {
+		if (detail->type == WLAN_FC_TYPE_MGMT) {
+			switch (detail->subtype) {
+			/*
+			 * deauth_reason
+			 */
+			case WLAN_FC_STYPE_DEAUTH:
+				if (cv_enabled(detail->deauth_reason)) {
+					m->u.deauth.reason = htons(detail->deauth_reason);
+				} else {
+					m->u.deauth.reason = htons(DefaultActionDetail.deauth_reason);
+				}
+				break;
+			case WLAN_FC_STYPE_PROBE_RESP:
+				if (cv_enabled(detail->ibss)) {
+					m->u.probe_resp.capability.ibss = detail->ibss;
+				} else {
+					m->u.probe_resp.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			case WLAN_FC_STYPE_BEACON:
+				if (cv_enabled(detail->ibss)) {
+					m->u.beacon.capability.ibss = detail->ibss;
+				} else {
+					m->u.beacon.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			case WLAN_FC_STYPE_ASSOC_REQ:
+				if (cv_enabled(detail->ibss)) {
+					m->u.assoc_req.capability.ibss = detail->ibss;
+				} else {
+					m->u.assoc_req.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			case WLAN_FC_STYPE_ASSOC_RESP:
+				if (cv_enabled(detail->ibss)) {
+					m->u.assoc_resp.capability.ibss = detail->ibss;
+				} else {
+					m->u.assoc_resp.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			case WLAN_FC_STYPE_REASSOC_REQ:
+				if (cv_enabled(detail->ibss)) {
+					m->u.reassoc_req.capability.ibss = detail->ibss;
+				} else {
+					m->u.reassoc_req.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			case WLAN_FC_STYPE_REASSOC_RESP:
+				if (cv_enabled(detail->ibss)) {
+					m->u.reassoc_resp.capability.ibss = detail->ibss;
+				} else {
+					m->u.reassoc_resp.capability.ibss = DefaultActionDetail.ibss;
+				}
+				break;
+			}
+		}
+	}
+	// protect
+	if (cv_enabled(detail->protect)) {
+		h->fc.flags.protect = detail->protect;
+	} else {
+		h->fc.flags.protect = DefaultActionDetail.protect;
+	}
+	// duration
+	if (cv_enabled(detail->duration)) {
+		h->duration = ntohs(detail->duration);
+	} else {
+		h->duration = DefaultActionDetail.duration;
+	}
+	// type
+	if (cv_enabled(detail->type)) {
+		h->fc.type = detail->type;
+	} else {
+		h->fc.type = DefaultActionDetail.type;
+	}
+	// subtype
+	if (cv_enabled(detail->subtype)) {
+		h->fc.subtype = detail->subtype;
+	} else {
+		h->fc.subtype = DefaultActionDetail.subtype;
+	}
+	// fromds
+	if (cv_enabled(detail->fromds)) {
 		h->fc.flags.fromds = detail->fromds;
+	} else {
+		h->fc.flags.fromds = DefaultActionDetail.fromds;
+	}
+	// tods
+	if (cv_enabled(detail->tods)) {
 		h->fc.flags.tods = detail->tods;
+	} else {
+		h->fc.flags.tods = DefaultActionDetail.tods;
+	}
+	// addr1
+	if (cv_enabled(detail->addr1)) {
+		mac_copy(h->addr.u.n.addr1, detail->addr1);
+	} else {
+		mac_copy(h->addr.u.n.addr1, DefaultActionDetail.addr1);
+	}
+	// addr2
+	if (cv_enabled(detail->addr2)) {
+		mac_copy(h->addr.u.n.addr2, detail->addr2);
+	} else {
+		mac_copy(h->addr.u.n.addr2, DefaultActionDetail.addr2);
+	}
+	// addr3
+	if (cv_enabled(detail->addr3)) {
+		mac_copy(h->addr.u.n.addr3, detail->addr3);
+	} else {
+		mac_copy(h->addr.u.n.addr3, DefaultActionDetail.addr3);
+	}
+	// addr4
+	if (cv_enabled(detail->addr4)) {
+		mac_copy(h->addr4, detail->addr4);
+	} else {
+		mac_copy(h->addr4, DefaultActionDetail.addr4);
+	}
+	// da
+	if (cv_enabled(detail->da)) {
+		mac_copy(h->addr.u.d.da, detail->da);
+	} else {
+		mac_copy(h->addr.u.d.da, DefaultActionDetail.da);
+	}
+	// sa
+	if (cv_enabled(detail->sa)) {
+		mac_copy(h->addr.u.d.sa, detail->sa);
+	} else {
+		mac_copy(h->addr.u.d.sa, DefaultActionDetail.sa);
 	}
 
-	echo.i("build: config:%s, action:%s", detail->action->config->name, detail->action->name);
+	echo.i("success build: detail:%s, action:%d, config:%s",
+			detail->action->config->name,
+			detail->action->name,
+			detail->action->config->name);
 
 	return nbytes;
 }

@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include "types.h"
+
+#include "typedef.h"
 
 // static snprintf
 #define SNP(b, ...) ({ snprintf((b), sizeof(b), __VA_ARGS__); })
@@ -19,12 +20,12 @@ typedef u8 oui_t[3];
 #define mac_cmp_bcast(m1)  (memcmp((void *)m1, (void *)MAC_BCAST, 6) == 0)
 #define mac_cmp_null(m1)   (memcmp((void *)m1, (void *)MAC_NULL, 6) == 0)
 
-#define mac_copy(m1, m2)   (memcpy((void *)(m1), (void *)(m2), 6))
-#define mac_copy_bcast(m1) (memcpy((void *)(m1), (void *)(MAC_BCAST), 6))
-#define mac_copy_null(m1)  (memcpy((void *)(m1), (void *)(MAC_NULL), 6))
+#define mac_copy(to, from) (memcpy((void *)(to), (void *)(from), 6))
+#define mac_copy_bcast(to) (memcpy((void *)(to), (void *)(MAC_BCAST), 6))
+#define mac_copy_null(to)  (memcpy((void *)(to), (void *)(MAC_NULL), 6))
 
 #define oui_cmp(o1, o2)    (memcmp((void*)(o1), (void*)(o2), 3) == 0)
-#define oui_cpy(p1, p2)    (memcpy((void*)(o1), (void*)(o2), 3))
+#define oui_cpy(to, from)  (memcpy((void*)(to), (void*)(from), 3))
 
 
 /*

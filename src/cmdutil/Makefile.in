@@ -89,8 +89,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = inspect$(EXEEXT)
-subdir = src
+sbin_PROGRAMS = cmdutil$(EXEEXT)
+subdir = src/cmdutil
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -103,22 +103,16 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(bashcompletiondir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_inspect_OBJECTS = inspect-alloc.$(OBJEXT) inspect-convert.$(OBJEXT) \
-	inspect-inspect.$(OBJEXT) inspect-log.$(OBJEXT) \
-	inspect-match.$(OBJEXT) inspect-output.$(OBJEXT) \
-	inspect-parser.$(OBJEXT) inspect-resource.$(OBJEXT) \
-	inspect-rtx.$(OBJEXT) inspect-string_util.$(OBJEXT) \
-	inspect-module.$(OBJEXT)
-inspect_OBJECTS = $(am_inspect_OBJECTS)
-inspect_DEPENDENCIES = match_modules/libmatch.a \
-	output_modules/liboutput.a parser_modules/libparser.a \
-	rtx_modules/librtx.a ezxml/libezxml.a osdep/libosdep.a
+am_cmdutil_OBJECTS = cmdutil-cmdutil.$(OBJEXT) cmdutil-iw.$(OBJEXT) \
+	cmdutil-string_util.$(OBJEXT)
+cmdutil_OBJECTS = $(am_cmdutil_OBJECTS)
+cmdutil_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-inspect_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(inspect_CFLAGS) \
+cmdutil_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(cmdutil_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -153,16 +147,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(inspect_SOURCES)
-DIST_SOURCES = $(inspect_SOURCES)
-RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
-	ctags-recursive dvi-recursive html-recursive info-recursive \
-	install-data-recursive install-dvi-recursive \
-	install-exec-recursive install-html-recursive \
-	install-info-recursive install-pdf-recursive \
-	install-ps-recursive install-recursive installcheck-recursive \
-	installdirs-recursive pdf-recursive ps-recursive \
-	tags-recursive uninstall-recursive
+SOURCES = $(cmdutil_SOURCES)
+DIST_SOURCES = $(cmdutil_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -196,14 +182,6 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 DATA = $(bashcompletion_DATA)
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-am__recursive_targets = \
-  $(RECURSIVE_TARGETS) \
-  $(RECURSIVE_CLEAN_TARGETS) \
-  $(am__extra_recursive_targets)
-AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
-	distdir
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -223,34 +201,8 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -378,32 +330,15 @@ top_srcdir = @top_srcdir@
 # Copyright 2017 Kang seok ju <kinow83@gmail.com>
 #
 AUTOMAKE_OPTIONS = foreign no-dependencies
-SUBDIRS = osdep ezxml match_modules output_modules parser_modules rtx_modules cmdutil
-inspect_SOURCES = h80211_struct.h version.h typedef.h format.h \
-alloc.c alloc.h \
-convert.c convert.h \
-inspect.c \
-log.c log.h \
-match.c match.h \
-output.c output.h \
-parser.c parser.h \
-resource.c resource.h \
-rtx.c rtx.h \
-string_util.c string_util.h \
-module.c module.h \
-perform.h
+cmdutil_SOURCES = cmdutil.c cmdutil.h \
+iw.c iw.h \
+../string_util.c ../string_util.h
 
-inspect_LDADD = match_modules/libmatch.a \
-output_modules/liboutput.a \
-parser_modules/libparser.a \
-rtx_modules/librtx.a \
-ezxml/libezxml.a \
-osdep/libosdep.a
-
-inspect_CFLAGS = -g -DDEBUG
+cmdutil_CFLAGS = -g -DDEBUG
+AM_CPPFLAGS = -I../
 bashcompletiondir = /etc/bash_completion.d/
-bashcompletion_DATA = bash_completion/inspect
-all: all-recursive
+bashcompletion_DATA = bash_completion/cmdutil
+all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
@@ -416,9 +351,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/cmdutil/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/Makefile
+	  $(AUTOMAKE) --foreign src/cmdutil/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -486,9 +421,9 @@ clean-sbinPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-inspect$(EXEEXT): $(inspect_OBJECTS) $(inspect_DEPENDENCIES) $(EXTRA_inspect_DEPENDENCIES) 
-	@rm -f inspect$(EXEEXT)
-	$(AM_V_CCLD)$(inspect_LINK) $(inspect_OBJECTS) $(inspect_LDADD) $(LIBS)
+cmdutil$(EXEEXT): $(cmdutil_OBJECTS) $(cmdutil_DEPENDENCIES) $(EXTRA_cmdutil_DEPENDENCIES) 
+	@rm -f cmdutil$(EXEEXT)
+	$(AM_V_CCLD)$(cmdutil_LINK) $(cmdutil_OBJECTS) $(cmdutil_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -505,71 +440,23 @@ distclean-compile:
 .c.lo:
 	$(AM_V_CC)$(LTCOMPILE) -c -o $@ $<
 
-inspect-alloc.o: alloc.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-alloc.o `test -f 'alloc.c' || echo '$(srcdir)/'`alloc.c
+cmdutil-cmdutil.o: cmdutil.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-cmdutil.o `test -f 'cmdutil.c' || echo '$(srcdir)/'`cmdutil.c
 
-inspect-alloc.obj: alloc.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-alloc.obj `if test -f 'alloc.c'; then $(CYGPATH_W) 'alloc.c'; else $(CYGPATH_W) '$(srcdir)/alloc.c'; fi`
+cmdutil-cmdutil.obj: cmdutil.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-cmdutil.obj `if test -f 'cmdutil.c'; then $(CYGPATH_W) 'cmdutil.c'; else $(CYGPATH_W) '$(srcdir)/cmdutil.c'; fi`
 
-inspect-convert.o: convert.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-convert.o `test -f 'convert.c' || echo '$(srcdir)/'`convert.c
+cmdutil-iw.o: iw.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-iw.o `test -f 'iw.c' || echo '$(srcdir)/'`iw.c
 
-inspect-convert.obj: convert.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-convert.obj `if test -f 'convert.c'; then $(CYGPATH_W) 'convert.c'; else $(CYGPATH_W) '$(srcdir)/convert.c'; fi`
+cmdutil-iw.obj: iw.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-iw.obj `if test -f 'iw.c'; then $(CYGPATH_W) 'iw.c'; else $(CYGPATH_W) '$(srcdir)/iw.c'; fi`
 
-inspect-inspect.o: inspect.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-inspect.o `test -f 'inspect.c' || echo '$(srcdir)/'`inspect.c
+cmdutil-string_util.o: ../string_util.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-string_util.o `test -f '../string_util.c' || echo '$(srcdir)/'`../string_util.c
 
-inspect-inspect.obj: inspect.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-inspect.obj `if test -f 'inspect.c'; then $(CYGPATH_W) 'inspect.c'; else $(CYGPATH_W) '$(srcdir)/inspect.c'; fi`
-
-inspect-log.o: log.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-log.o `test -f 'log.c' || echo '$(srcdir)/'`log.c
-
-inspect-log.obj: log.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-log.obj `if test -f 'log.c'; then $(CYGPATH_W) 'log.c'; else $(CYGPATH_W) '$(srcdir)/log.c'; fi`
-
-inspect-match.o: match.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-match.o `test -f 'match.c' || echo '$(srcdir)/'`match.c
-
-inspect-match.obj: match.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-match.obj `if test -f 'match.c'; then $(CYGPATH_W) 'match.c'; else $(CYGPATH_W) '$(srcdir)/match.c'; fi`
-
-inspect-output.o: output.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-output.o `test -f 'output.c' || echo '$(srcdir)/'`output.c
-
-inspect-output.obj: output.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-output.obj `if test -f 'output.c'; then $(CYGPATH_W) 'output.c'; else $(CYGPATH_W) '$(srcdir)/output.c'; fi`
-
-inspect-parser.o: parser.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-parser.o `test -f 'parser.c' || echo '$(srcdir)/'`parser.c
-
-inspect-parser.obj: parser.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-parser.obj `if test -f 'parser.c'; then $(CYGPATH_W) 'parser.c'; else $(CYGPATH_W) '$(srcdir)/parser.c'; fi`
-
-inspect-resource.o: resource.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-resource.o `test -f 'resource.c' || echo '$(srcdir)/'`resource.c
-
-inspect-resource.obj: resource.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-resource.obj `if test -f 'resource.c'; then $(CYGPATH_W) 'resource.c'; else $(CYGPATH_W) '$(srcdir)/resource.c'; fi`
-
-inspect-rtx.o: rtx.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-rtx.o `test -f 'rtx.c' || echo '$(srcdir)/'`rtx.c
-
-inspect-rtx.obj: rtx.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-rtx.obj `if test -f 'rtx.c'; then $(CYGPATH_W) 'rtx.c'; else $(CYGPATH_W) '$(srcdir)/rtx.c'; fi`
-
-inspect-string_util.o: string_util.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-string_util.o `test -f 'string_util.c' || echo '$(srcdir)/'`string_util.c
-
-inspect-string_util.obj: string_util.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-string_util.obj `if test -f 'string_util.c'; then $(CYGPATH_W) 'string_util.c'; else $(CYGPATH_W) '$(srcdir)/string_util.c'; fi`
-
-inspect-module.o: module.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-module.o `test -f 'module.c' || echo '$(srcdir)/'`module.c
-
-inspect-module.obj: module.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-module.obj `if test -f 'module.c'; then $(CYGPATH_W) 'module.c'; else $(CYGPATH_W) '$(srcdir)/module.c'; fi`
+cmdutil-string_util.obj: ../string_util.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cmdutil_CFLAGS) $(CFLAGS) -c -o cmdutil-string_util.obj `if test -f '../string_util.c'; then $(CYGPATH_W) '../string_util.c'; else $(CYGPATH_W) '$(srcdir)/../string_util.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -598,61 +485,14 @@ uninstall-bashcompletionDATA:
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(bashcompletiondir)'; $(am__uninstall_files_from_dir)
 
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run 'make' without going through this Makefile.
-# To change the values of 'make' variables: instead of editing Makefiles,
-# (1) if the variable is set in 'config.status', edit 'config.status'
-#     (which will cause the Makefiles to be regenerated when you run 'make');
-# (2) otherwise, pass the desired values on the 'make' command line.
-$(am__recursive_targets):
-	@fail=; \
-	if $(am__make_keepgoing); then \
-	  failcom='fail=yes'; \
-	else \
-	  failcom='exit 1'; \
-	fi; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-recursive
+tags: tags-am
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -665,7 +505,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-recursive
+ctags: ctags-am
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -678,7 +518,7 @@ GTAGS:
 	here=`$(am__cd) $(top_builddir) && pwd` \
 	  && $(am__cd) $(top_srcdir) \
 	  && gtags -i $(GTAGS_ARGS) "$$here"
-cscopelist: cscopelist-recursive
+cscopelist: cscopelist-am
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -727,48 +567,22 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    $(am__make_dryrun) \
-	      || test -d "$(distdir)/$$subdir" \
-	      || $(MKDIR_P) "$(distdir)/$$subdir" \
-	      || exit 1; \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
+check: check-am
 all-am: Makefile $(PROGRAMS) $(DATA)
-installdirs: installdirs-recursive
-installdirs-am:
+installdirs:
 	for dir in "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(bashcompletiondir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -790,88 +604,88 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-sbinPROGRAMS \
 	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
 install-data-am: install-bashcompletionDATA
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
 install-exec-am: install-sbinPROGRAMS
 
-install-html: install-html-recursive
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
 uninstall-am: uninstall-bashcompletionDATA uninstall-sbinPROGRAMS
 
-.MAKE: $(am__recursive_targets) install-am install-strip
+.MAKE: install-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
-	check-am clean clean-generic clean-libtool clean-sbinPROGRAMS \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-sbinPROGRAMS cscopelist-am ctags ctags-am \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am \
 	install-bashcompletionDATA install-data install-data-am \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-sbinPROGRAMS install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am \

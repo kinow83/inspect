@@ -1,7 +1,7 @@
 #ifndef _H80211_STRUCT_
 #define _H80211_STRUCT_
 
-#include "types.h"
+#include "typedef.h"
 
 #ifdef __GNUC__
 	#define STRUCT_PACKED __attribute__ ((packed))
@@ -625,6 +625,17 @@ typedef struct h80211_fragseq_t {
 	(((h80211_hdr_t *)(ph80211))->fc.subtype)
 
 
+#define WLAN_FC_DS_ADHOC   0
+#define WLAN_FC_DS_FROMAP  1
+#define WLAN_FC_DS_TOAP    2
+#define WLAN_FC_DS_BRIDGE  3
+
+#define WLAN_FC_DS_TYPE(ph80211) \
+	(	\
+		(((h80211_hdr_t *)(ph80211))->fc.flags.tods * 2) +	\
+		((h80211_hdr_t *)(ph80211))->fc.flags.fromds	\
+	)
+
 typedef struct h80211_hdr_t {
 	struct {
 		u8 version:2;
@@ -657,6 +668,9 @@ typedef struct h80211_hdr_t {
 		} u;
 	} STRUCT_PACKED addr;
 	h80211_fragseq_t fragseq;
+	/***********************************
+	 * fromds=1, tods=1 : for WDS
+	 ***********************************/
 	u8 addr4[];
 } STRUCT_PACKED h80211_hdr_t;
 

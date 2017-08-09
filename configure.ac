@@ -38,7 +38,8 @@ AC_CONFIG_FILES([Makefile
 				src/parser_modules/Makefile
 				src/match_modules/Makefile
 				src/rtx_modules/Makefile
-				src/osdep/Makefile])
+				src/osdep/Makefile
+				src/cmdutil/Makefile])
 
 AC_OUTPUT
 

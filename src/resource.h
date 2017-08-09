@@ -12,9 +12,9 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <pthread.h>
-#include "types.h"
 #include "format.h"
 #include "osdep/osdep.h"
+#include "typedef.h"
 
 
 typedef struct Module_option_t {
@@ -89,14 +89,16 @@ typedef struct Action_details_t {
 	Action_t *action;
 	char *name;
 	u32 id;
+	u8 malformable; // malformable
+
+	cv_def(version, u8);     // 802.11 version
 	cv_def(ibss, u8);
 	cv_def(protect, u8);
 	cv_def(duration, u16);   // duration
-	cv_def(version, u8);     // 802.11 version
 	cv_def(type, u8);        // frame type
 	cv_def(subtype, u8);     // frame subtype
-	cv_def(tods, u8);        // tods
 	cv_def(fromds, u8);      // fromds
+	cv_def(tods, u8);        // tods
 	cv_def(addr1, mac_t);    // mac address1
 	cv_def(addr2, mac_t);    // mac address2
 	cv_def(addr3, mac_t);    // mac address3

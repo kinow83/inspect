@@ -1,0 +1,52 @@
+_rtx_module()
+{
+    local cur prev opts base
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	opts="wifi_capture wifi_shooter"
+
+	case "${prev}" in
+		wifi_capture)
+			local wifi_capture_opts="dev=<ifname>:thread=<yes/no>"
+			COMPREPLY=($(compgen -W "${wifi_capture_opts}" -- ${cur}))
+			return 0
+			;;
+		wifi_shooter)
+			local wifi_shooter_opts="dev=<ifname>:thread=<yes/no>"
+			COMPREPLY=($(compgen -W "${wifi_shooteropts}" -- ${cur}))
+			return 0
+			;;
+		*)
+			;;
+	esac
+
+	COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	return 0
+}
+complete -F _rtx_module inspect
+
+
+_inspect()
+{
+    local cur prev opts base
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	opts="-r -o -p -m -v -h"
+
+	case "${prev}" in
+		-r)
+			local rtx_opts="wifi_capture wifi_shooter"
+			COMPREPLY=($(compgen -W "${rtx_opts}" -- ${cur}))
+			return 0
+			;;
+		*)
+			;;
+	esac
+
+	COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	return 0
+
+}
+complete -F _inspect inspect

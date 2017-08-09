@@ -118,17 +118,31 @@ static bool match_test_mgnt(Action_details_t *detail, u8 *h80211, size_t h80211l
 			break;
 		case WLAN_FC_STYPE_BEACON:
 			if (detail->ibss != h->u.beacon.capability.ibss) {
-				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.probe_resp.capability.ibss);
+				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.beacon.capability.ibss);
 				return false;
 			}
 			break;
 		case WLAN_FC_STYPE_ASSOC_REQ:
-		case WLAN_FC_STYPE_ASSOC_RESP:
-		case WLAN_FC_STYPE_REASSOC_REQ:
-		case WLAN_FC_STYPE_REASSOC_RESP:
-			// equal capability position assoc_req/resp and reassoc_req/resp
 			if (detail->ibss != h->u.assoc_req.capability.ibss) {
-				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.probe_resp.capability.ibss);
+				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.assoc_req.capability.ibss);
+				return false;
+			}
+			break;
+		case WLAN_FC_STYPE_ASSOC_RESP:
+			if (detail->ibss != h->u.assoc_resp.capability.ibss) {
+				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.assoc_resp.capability.ibss);
+				return false;
+			}
+			break;
+		case WLAN_FC_STYPE_REASSOC_REQ:
+			if (detail->ibss != h->u.reassoc_req.capability.ibss) {
+				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.reassoc_req.capability.ibss);
+				return false;
+			}
+			break;
+		case WLAN_FC_STYPE_REASSOC_RESP:
+			if (detail->ibss != h->u.reassoc_resp.capability.ibss) {
+				TRACE("mismatch ibss [%d != %d]", detail->ibss, h->u.reassoc_resp.capability.ibss);
 				return false;
 			}
 			break;

@@ -93,10 +93,6 @@ Config_t *do_parser_modules(const char *parser_name)
 			if (!config) {
 				return NULL;
 			}
-
-			// sort action by 'no'
-			sort_actions(&config->action);
-
 			return config;
 		}
 		idx = idx->next;

@@ -1,6 +1,6 @@
 <config>
 	<version>0</version>
-	<name>test config</name>
+	<name>test</name>
 
 	<action>
 		<id>1</id>
@@ -12,7 +12,7 @@
 
 		<shooter>
 			<id>1</id>
-			<name>shooter #1</name>
+			<name>s#1</name>
 			<type>0</type>
 			<subtype>beacon</subtype>
 			<sa>11:22:33:44:55:66</sa>
@@ -22,42 +22,44 @@
 				<tag id="0" len="9" type="string" data="kaka_ssid" />				
 			</tags>
 		</shooter>
-
 		<capture>
 			<id>1</id>
-			<name>capture #1</name>
-			<type>data</type>
-			<subtype>poll</subtype>
-			<da>11:22:33:44:55:66</da>
-		</capture>
-
-		<capture>
-			<id>2</id>
-			<name>capture #2</name>
+			<name>capture 1</name>
 			<type>mgnt</type>
+			<subtype>deauth</subtype>
 			<sa>11:22:33:44:55:66</sa>
 		</capture>
 	</action>
 
 	<action>
-		<id>1</id>
+		<id>2</id>
 		<enable>1</enable>
 		<name>action 2</name>
 		<interval>100</interval>
 		<interval_count>100</interval_count>
 		<channel>2</channel>
-
+		<shooter>
+			<id>1</id>
+			<name>shooter 1</name>
+			<type>0</type>
+			<subtype>beacon</subtype>
+			<sa>11:22:33:44:55:66</sa>
+			<da>ff:ff:ff:ff:ff:ff</da>
+			<tags>
+				<tag id="1" len="4" type="hex" data="3048606c" />
+				<tag id="0" len="9" type="string" data="kaka_ssid" />				
+			</tags>
+		</shooter>
 		<capture>
 			<id>1</id>
-			<name>capture #1</name>
+			<name>capture 1</name>
 			<type>data</type>
 			<subtype>poll</subtype>
 			<da>11:22:33:44:55:66</da>
 		</capture>
-
 		<capture>
 			<id>2</id>
-			<name>capture #2</name>
+			<name>capture 2</name>
 			<type>mgnt</type>
 			<sa>11:22:33:44:55:66</sa>
 		</capture>

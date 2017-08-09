@@ -63,13 +63,16 @@ static const char *LOG_STR[] = {
 	"DEBUG",
 };
 
+#define LOG_BUFSIZE 1024
+
+
 static void console_log(int lv, const char *fmt, va_list ap, 
 						u8 *hex, size_t len, const char *color, bool bold)
 {
 	struct tm t_now;
 	time_t now;
 	char strtime[256];
-	char buf[512];
+	char buf[LOG_BUFSIZE];
 	FILE *fp;
 	const char *lv_str;
 	int n, i;
@@ -119,7 +122,7 @@ static void console_log(int lv, const char *fmt, va_list ap,
 
 static void console_out(const char *fmt, ...)
 {
-	char buf[512];
+	char buf[LOG_BUFSIZE];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, ap);
@@ -129,7 +132,7 @@ static void console_out(const char *fmt, ...)
 
 static void CONSOLE_OUT(const char *fmt, ...)
 {
-	char buf[512];
+	char buf[LOG_BUFSIZE];
 	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, ap);

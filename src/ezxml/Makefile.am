@@ -7,6 +7,6 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 
 noinst_LIBRARIES = libezxml.a
 
-libezxml_a_SOURCES = ezxml.c
+libezxml_a_SOURCES = ezxml.c ezxml.h
 
 AM_CPPFLAGS = -I../

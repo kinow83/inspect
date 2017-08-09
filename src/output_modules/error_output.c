@@ -12,7 +12,7 @@
 #include "log.h"
 #include "alloc.h"
 #include "output.h"
-#include "strings.h"
+#include "string_util.h"
 
 #define ERROR_OUTPUT_NAME "error"
 

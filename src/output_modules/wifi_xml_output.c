@@ -9,7 +9,7 @@
 #include "ezxml/ezxml.h"
 #include "h80211_struct.h"
 #include "convert.h"
-#include "strings.h"
+#include "string_util.h"
 
 #define WIFI_XML_OUTPUT_NAME "xml"
 

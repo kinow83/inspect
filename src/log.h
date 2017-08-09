@@ -4,7 +4,8 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "types.h"
+
+#include "typedef.h"
 
 #define L_FATAL 0
 #define L_ERROR 1

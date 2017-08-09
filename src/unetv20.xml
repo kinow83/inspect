@@ -9,7 +9,6 @@
 		<interval>100</interval>
 		<interval_count>100</interval_count>
 		<channel>1</channel>
-
 		<shooter>
 			<id>1</id>
 			<name>beacon:kaka_ssid</name>
@@ -22,7 +21,6 @@
 				<tag id="0" len="9" type="string" data="kaka_ssid" />				
 			</tags>
 		</shooter>
-
 		<capture>
 			<id>1</id>
 			<name>deauth:kaka_ssid</name>

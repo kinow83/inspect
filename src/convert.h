@@ -11,7 +11,8 @@
 #include <stdint.h>
 #include <sys/time.h>
 #include <stdbool.h>
-#include "types.h"
+
+#include "typedef.h"
 
 void mac2str(unsigned char* mac, char *str, size_t strlen);
 bool str2mac(char *str, unsigned char *mac);
