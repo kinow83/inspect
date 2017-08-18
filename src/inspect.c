@@ -24,6 +24,7 @@
 #include "log.h"
 #include "module.h"
 #include "string_util.h"
+#include "thread_wait.h"
 
 bool do_exit;
 
@@ -73,13 +74,13 @@ void usage(int argc, char **argv)
 	echo.out("");
 	echo.OUT("Usage: inspect <options>");
 	echo.out("options:");
-	echo.out("\t -r <rtx module name:options>    : rtx module");
+	echo.out("\t -r <rtx module name:options;...>    : rtx module");
 	usage_rtx_module();
-	echo.out("\t -o <output module name:options> : output module");
+	echo.out("\t -o <output module name:options;...> : output module");
 	usage_output_module();
-	echo.out("\t -p <parser module name:options> : parser module");
+	echo.out("\t -p <parser module name:options;...> : parser module");
 	usage_parser_module();
-	echo.out("\t -m <match  module name:options> : match module");
+	echo.out("\t -m <match  module name:options;...> : match module");
 	usage_match_module();
 	echo.out("\t -v                              : version");
 	echo.out("\t -h -?                           : help");
@@ -166,17 +167,25 @@ int main(int argc, char **argv)
 	// run rtx modules
 	do_rtx_modules(config);
 
-
 	do_exit = true;
 
 
 done:
+#ifdef THREAD_WAIT_ABLE
+	echo.d("[wait all thread]");
+	thread_wait();
+	free_thread_wait(NULL);
+#endif
+
 	echo.d("[free config]");
 	free_config(config);
+
 	echo.d("[finish modules]");
 	finish_modules();
+
 	echo.d("[free modules]");
 	free_modules();
+
 	echo.d("[free module option list]");
 	free_module_option_list(&mopt_list);
 }

@@ -7,7 +7,7 @@
 		<enable>1</enable>
 		<name>action 1</name>
 		<interval>100</interval>
-		<interval_count>100</interval_count>
+		<interval_count>10000</interval_count>
 		<channel>1</channel>
 
 		<shooter>
@@ -36,7 +36,7 @@
 		<enable>1</enable>
 		<name>action 2</name>
 		<interval>100</interval>
-		<interval_count>100</interval_count>
+		<interval_count>10000</interval_count>
 		<channel>2</channel>
 		<shooter>
 			<id>1</id>

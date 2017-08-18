@@ -786,7 +786,7 @@ static Config_t *do_xml_parser(void)
 
 static void init_xml_parser(char *options)
 {
-	echo.d("init_xml_parser: %s", options);
+	echo.i("init_xml_parser: %s", options);
 
 	char **chunk, **field;
 	int nchunk, nfield;
@@ -813,8 +813,8 @@ static void init_xml_parser(char *options)
 		echo.f("error xml_parser: missing filename: %s", options);
 	}
 
-	echo.i("[xml parser options]");
-	echo.i("filename = %s", xmlfilename);
+//	echo.i("[xml parser options]");
+//	echo.i("filename = %s", xmlfilename);
 }
 
 static void finish_xml_parser(void)

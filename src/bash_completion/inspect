@@ -1,51 +1,61 @@
-_rtx_module()
+_match()
 {
-    local cur prev opts base
-	COMPREPLY=()
-	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD-1]}"
-	opts="wifi_capture wifi_shooter"
+	local list=($1)
+	local opts=$2
 
-	case "${prev}" in
-		wifi_capture)
-			local wifi_capture_opts="dev=<ifname>:thread=<yes/no>"
-			COMPREPLY=($(compgen -W "${wifi_capture_opts}" -- ${cur}))
-			return 0
-			;;
-		wifi_shooter)
-			local wifi_shooter_opts="dev=<ifname>:thread=<yes/no>"
-			COMPREPLY=($(compgen -W "${wifi_shooteropts}" -- ${cur}))
-			return 0
-			;;
-		*)
-			;;
-	esac
+	for (( k=0; k<COMP_CWORD; k++ )); do
+		if [[ "${list[k]}" == "${COMP_WORDS[k+1]}" ]]; then
+			for (( i=0; i<${#list[@]} && k<COMP_CWORD; i++, k++ )); do
+				if [[ "${list[i]}" != "${COMP_WORDS[k+1]}" ]]; then
+					break
+				fi
+			done
 
-	COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+			if [[ $i == ${#list[@]} ]] && [[ `expr $k + 1` == $COMP_CWORD ]] ; then
+				cur="${COMP_WORDS[COMP_CWORD]}"
+				COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+				return 1
+			fi
+		fi
+	done
+
 	return 0
 }
-complete -F _rtx_module inspect
-
 
 _inspect()
 {
-    local cur prev opts base
+    local cur prev opts ret=0
+
 	COMPREPLY=()
+
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	opts="-r -o -p -m -v -h"
 
-	case "${prev}" in
-		-r)
-			local rtx_opts="wifi_capture wifi_shooter"
-			COMPREPLY=($(compgen -W "${rtx_opts}" -- ${cur}))
-			return 0
-			;;
-		*)
-			;;
-	esac
+	rtx_wifi_capture_opts="-r wifi_capture"
+	rtx_wiri_shooter_opts="-r wifi_capture"
+	output_xml_opts="-o xml"
+	parser_xml_opts="-p xml"
+	match_wifi_opts="-m wifi"
+
+
+	_match "-r" "wifi_capture wifi_shooter"
+	if [[ $? -eq 1 ]]; then
+		return 0
+	fi
+
+	_match "-r wifi_capture" "dev=mon0;thread=no"
+	if [[ $? -eq 1 ]]; then
+		return 0
+	fi
+
+	_match "-r wifi_shooter" "dev=mon0;thread=no"
+	if [[ $? -eq 1 ]]; then
+		return 0
+	fi
 
 	COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+
 	return 0
 
 }

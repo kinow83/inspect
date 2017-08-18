@@ -138,7 +138,7 @@ struct iw_info_t *get_wifi_devs()
 
 	snprintf(cmd, sizeof(cmd), "%s 2>/dev/null | grep 'IEEE 802.11'", path);
 	free(path);
-	printf("cmd: %s\n", cmd);
+//	printf("cmd: %s\n", cmd);
 
 	out = popen(cmd, "r");
 	if (!out) return NULL;
@@ -184,7 +184,7 @@ struct iw_info_t *get_wifi_monitor_devs(const char *iw_prefix)
 
 	snprintf(cmd, sizeof(cmd), "%s 2>/dev/null | grep %s | awk '{print $1}'", path, iw_prefix);
 	free(path);
-	printf("cmd: %s\n", cmd);
+//	printf("cmd: %s\n", cmd);
 
 	out = popen(cmd, "r");
 	if (!out) return NULL;
@@ -240,7 +240,7 @@ bool airmon_ng_stop(const char *dev)
 		return false;
 	}
 	snprintf(cmd, sizeof(cmd), "%s stop %s 1>&2 > /dev/null", path, dev);
-	printf("%s\n", cmd);
+//	printf("%s\n", cmd);
 
 	return system(cmd) ? false : true;
 }

@@ -15,6 +15,7 @@
 #include "alloc.h"
 #include "h80211_struct.h"
 #include "string_util.h"
+#include "thread_wait.h"
 
 const char* h80211_frame_string[] = {
 	"mgnt",
@@ -843,7 +844,7 @@ Tag_t *new_sort_tags(Tag_t *first)
 	return sorted;
 }
 
-pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *))
+pthread_t run_or_thread(Config_t *config, const char *name, bool thread, void *(*fp)(void *))
 {
 	pthread_t pid = 0;
 
@@ -851,7 +852,10 @@ pthread_t run_or_thread(Config_t *config, bool thread, void *(*fp)(void *))
 		if (pthread_create(&pid, NULL, fp, config) != 0) {
 			echo.f("Error pthread_create(): %s", strerror(errno));
 		}
-		pthread_detach(pid);
+		echo.i("thread create [%ld]", pid);
+#ifdef THREAD_WAIT_ABLE
+		register_thread_waiter(name, pid);
+#endif
 	}
 	else {
 		fp(config);

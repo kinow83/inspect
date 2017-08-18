@@ -896,5 +896,28 @@ typedef struct h80211_mgmt_t {
 	} u;
 } STRUCT_PACKED h80211_mgmt_t;
 
+struct h80211_tag_t {
+	u8 id;
+	u8 len;
+	u8 data[0];
+} STRUCT_PACKED;
+
+struct h80211_qos {
+	u16 priority:3;
+	u16 not_use:1; // not use
+	u16 eosp:1;
+	u16 ack_policy:2;
+	u16 payload_type:1;
+	u16 qap_ps_buffer_state:8;
+} STRUCT_PACKED; // 2 byte
+
+struct h80211_llc {
+	u8 dsap;
+	u8 ssap;
+	u8 ctrl;
+	u8 oui[3];
+	u8 pid[2];
+} STRUCT_PACKED; // 8 byte
+
 
 #endif

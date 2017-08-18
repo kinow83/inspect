@@ -433,7 +433,7 @@ static Action_details_t *do_wifi_match(Config_t *config, u8 *h80211, size_t h802
 
 static void init_wifi_match(char *options)
 {
-	echo.d("init_wifi_match: %s", options);
+	echo.i("[init_wifi_match]");
 }
 
 static void finish_wifi_match()

@@ -30,6 +30,8 @@
 #include "h80211_struct.h"
 #include "osdep/osdep.h"
 
+#define RTX_FINISH_CONTRL 1
+
 typedef struct shooter_packet_t {
 	Action_t *action;
 	u8 *pkt;
@@ -161,10 +163,14 @@ static void *do_wifi_capture_rtx_func(void *arg)
 		echo.F("yet, wifi interface doesn't prepared");
 	}
 
+#if 0
 	/*
 	 * FIXME: because of thread environment, MUST finish control
 	 */
 	CaptureRTXModule->finished = false;
+#endif
+
+	echo.i("do wifi capture start");
 
 	while (likely(!do_exit)) {
 
@@ -179,10 +185,14 @@ static void *do_wifi_capture_rtx_func(void *arg)
 
 	}
 
+	echo.e("do wifi capture stop");
+
+#ifdef RTX_FINISH_CONTRL
 	/*
 	 * FIXME: because of thread environment, MUST finish control
 	 */
 	CaptureRTXModule->finished = true;
+#endif
 
 	return NULL;
 }
@@ -191,12 +201,13 @@ static void do_wifi_capture_rtx(Config_t *config, RTX_module_t *module)
 {
 	CaptureRTXModule = module;
 	CaptureWif->pid = run_or_thread(
-			config, CaptureWif->thread, do_wifi_capture_rtx_func);
+			config, module->rtx_name,
+			CaptureWif->thread, do_wifi_capture_rtx_func);
 }
 
 static const char *usage_wifi_capture_rtx(void)
 {
-	return "wifi_capture:dev=<ifname>;thread=<yes/no>";
+	return "wifi_capture:dev=<ifname>,thread=<yes/no>";
 }
 
 
@@ -256,14 +267,128 @@ Action_details_t DefaultActionDetail = {
 		.deauth_reason = 0,
 };
 
+static size_t build_tags(Action_details_t *detail, u8 *buf)
+{
+	Tag_t *tag;
+	struct h80211_tag_t *p;
+	size_t len;
+
+	len = 0;
+	tag = detail->tags;
+	while (tag) {
+		p = (struct h80211_tag_t *)(buf + len);
+		p->id = tag->id;
+		p->len = tag->len;
+		if (tag->data) {
+			memcpy(p->data, tag->data, tag->len);
+		} else {
+			p->len = 0;
+		}
+		len += sizeof(struct h80211_tag_t) + p->len;
+
+		tag = tag->next;
+	}
+	return len;
+}
+
+static size_t build_data(Action_details_t *detail, u8 *buf, bool qos, bool data)
+{
+	int i, len = 0;
+	u8 realdata;
+	struct h80211_qos *p_qos;
+	struct h80211_llc *p_llc;
+	time_t t = time(NULL);
+
+	static u8 qos_priority[] = {
+			0, // not effect
+			1, // background (background)
+			2,
+			3, // excellent effort (best effort)
+			4, // controlled load (video)
+			5, // video (video)
+			6, // voice (voice)
+			7, // network control (voice)
+    };
+	static u8 rsns[] = {
+			0, // wep
+			1, // ccmp
+			2, // tkip
+	};
+
+	/* Qos Control */
+	if (qos) {
+		p_qos = (struct h80211_qos *)(buf + len);
+		memset(p_qos, 0, sizeof(struct h80211_qos));
+		/* random priority */
+		p_qos->priority = qos_priority[rand() % (sizeof(qos_priority))];
+		len += sizeof(*p_qos);
+	}
+	/* TKIP/CCMP or WEP */
+	if (detail->protect) {
+		int rsn = rsns[rand() % (sizeof(rsns))];
+
+		if (rsn == 0) {
+			timebase_rand(buf + len, 4);
+			/* exten iv bit off */
+			buf[len - 1 + 4] &= (~0x20);
+			len += 4;
+		} else if (rsn == 1) {
+			memcpy(buf + len, "\x07\x11\x00\x20\x00\x00\x00\x00", 8);
+			buf[len + 3] = 0x20;
+			len += 8;
+		} else if (rsn == 2) {
+			memcpy(buf + len, "\x0a\x2a\x00\x20\x00\x00\x00\x00", 8);
+			buf[len + 3] = 0x20;
+			len += 8;
+		}
+	}
+	else {
+		p_llc = (struct h80211_llc *)(buf + len);
+		p_llc->dsap = 0xaa;
+		p_llc->ssap = 0xaa;
+		p_llc->ctrl = 0x03;
+		p_llc->oui[0] = 0; // Encapsulated Ethernet
+		p_llc->oui[1] = 0;
+		p_llc->oui[2] = 0;
+
+		t = t % 3; // random
+		if (t == 0) {
+			p_llc->pid[0] = 0x88; // 802.1x
+			p_llc->pid[1] = 0x8e;
+		} else if (t == 1) {
+			p_llc->pid[0] = 0x08; // IPv4
+			p_llc->pid[1] = 0x00;
+		} else if (t == 2) {
+			p_llc->pid[0] = 0x08; // ARP
+			p_llc->pid[1] = 0x06;
+		}
+		len += sizeof(*p_llc);
+	}
+	if (data) {
+		/* FILL random data */
+		realdata = buf + len;
+
+		sign_len = strlen(conf->data_sign);
+		if ((sign_len > 0) && (sign_len <= conf->data_size)) {
+			memcpy(realdata, conf->data_sign, sign_len);
+		}
+		for (i = sign_len; i < conf->data_size - sign_len; i++) {
+			realdata[i] = rand() & 0xFF;
+		}
+		len += conf->data_size;
+	}
+
+}
+
 static int build_wifi_shooter_packet(
 		Action_details_t *detail, u8 *buf, int buflen)
 {
 	int nbytes = 0;
-
 	h80211_hdr_t *h;
 	h80211_mgmt_t *m;
+	u8 *p_tag;
 
+	p_tag = NULL;
 	h = (h80211_hdr_t *)buf;
 	m = (h80211_mgmt_t *)h;
 
@@ -405,7 +530,141 @@ static int build_wifi_shooter_packet(
 		mac_copy(h->addr.u.d.sa, DefaultActionDetail.sa);
 	}
 
-	echo.i("success build: detail:%s, action:%d, config:%s",
+
+	switch (detail->type) {
+	case WLAN_FC_TYPE_MGMT:
+
+		switch (detail->subtype) {
+		case WLAN_FC_STYPE_ASSOC_REQ:
+			/* Transmitter is an AP */
+			m->u.assoc_req.capability.ess_capa = 1;
+			m->u.assoc_req.capability.privacy = h->fc.flags.protect;
+			m->u.assoc_req.capability.preamble = 1;
+			m->u.assoc_req.listen_int = htons(10);
+			p_tag = m->u.assoc_req.variable;
+			break;
+		case WLAN_FC_STYPE_ASSOC_RESP:
+		{
+			static u16 assoc_id = 1;
+			/* Transmitter is an AP */
+			m->u.assoc_resp.capability.ess_capa = 1;
+			m->u.assoc_resp.capability.privacy = h->fc.flags.protect;
+			m->u.assoc_resp.capability.preamble = 1;
+			m->u.assoc_resp.status = 0;
+			m->u.assoc_resp.assoc_id = assoc_id++;
+			p_tag = m->u.assoc_resp.variable;
+			break;
+		}
+		case WLAN_FC_STYPE_REASSOC_REQ:
+		{
+			static struct timeval tv;
+			/* Transmitter is an AP */
+			m->u.reassoc_req.capability.ess_capa = 1;
+			m->u.reassoc_req.capability.privacy = h->fc.flags.protect;
+			m->u.reassoc_req.capability.preamble = 1;
+			m->u.reassoc_req.listen_int = htons(10);
+
+			/*
+			 * random current AP
+			 */
+			gettimeofday(&tv, NULL);
+			m->u.reassoc_req.cur_ap[0] = 0;
+			m->u.reassoc_req.cur_ap[1] = (tv.tv_sec) & 0xFF;
+			m->u.reassoc_req.cur_ap[2] = (tv.tv_sec >> 8) & 0xFF;
+			m->u.reassoc_req.cur_ap[3] = (tv.tv_sec >> 16) & 0xFF;
+			m->u.reassoc_req.cur_ap[4] = (tv.tv_usec) & 0xFF;
+			m->u.reassoc_req.cur_ap[5] = (tv.tv_usec >> 8) & 0xFF;
+			p_tag = m->u.reassoc_req.variable;
+			break;
+		}
+		case WLAN_FC_STYPE_REASSOC_RESP:
+			/* Transmitter is an AP */
+			m->u.reassoc_resp.capability.ess_capa = 1;
+			m->u.reassoc_resp.capability.privacy = h->fc.flags.protect;
+			m->u.reassoc_resp.capability.preamble = 1;
+			p_tag = m->u.reassoc_resp.variable;
+			break;
+		case WLAN_FC_STYPE_PROBE_REQ:
+			p_tag = m->u.probe_req.variable;
+			break;
+		case WLAN_FC_STYPE_PROBE_RESP:
+		{
+			static struct timeval tv;
+			gettimeofday(&tv, NULL);
+
+			m->u.probe_resp.timestamp = (tv.tv_sec << 32) + tv.tv_usec;
+			m->u.probe_resp.beacon_int = 0x0064;
+
+			/* Transmitter is an AP */
+			m->u.probe_resp.capability.ess_capa = 1;
+			/* RSN */
+			if (find_tag(detail->tags, 48)) {
+				m->u.probe_resp.capability.privacy = 1;
+			}
+			/* WPA */
+			if (find_tag_vendor(detail->tags, (u8 *)"\x00\x50\xf2")) {
+				m->u.probe_resp.capability.privacy = 1;
+			}
+			/* HT Capability, HT Information */
+			if (find_tag(detail->tags, 45)
+					|| find_tag(detail->tags, 61)) {
+				m->u.probe_resp.capability.preamble = 0;
+			} else {
+				m->u.probe_resp.capability.preamble = 1;
+			}
+			p_tag = m->u.probe_resp.variable;
+			break;
+		}
+		case WLAN_FC_STYPE_BEACON:
+		{
+			static struct timeval tv;
+			gettimeofday(&tv, NULL);
+
+			m->u.beacon.timestamp = (tv.tv_sec << 32) + tv.tv_usec;
+			m->u.beacon.beacon_int = 0x0064;
+
+			/* Transmitter is an AP */
+			m->u.beacon.capability.ess_capa = 1;
+			/* RSN */
+			if (find_tag(detail->tags, 48)) {
+				m->u.beacon.capability.privacy = 1;
+			}
+			/* WPA */
+			if (find_tag_vendor(detail->tags, (u8 *)"\x00\x50\xf2")) {
+				m->u.beacon.capability.privacy = 1;
+			}
+			/* HT Capability, HT Information */
+			if (find_tag(detail->tags, 45)
+					|| find_tag(detail->tags, 61)) {
+				m->u.beacon.capability.preamble = 0;
+			} else {
+				m->u.beacon.capability.preamble = 1;
+			}
+			p_tag = m->u.beacon.variable;
+			break;
+		}
+		case WLAN_FC_STYPE_ATIM:
+			break;
+		case WLAN_FC_STYPE_DISASSOC:
+			break;
+		case WLAN_FC_STYPE_AUTH:
+			break;
+		case WLAN_FC_STYPE_DEAUTH:
+			break;
+		case WLAN_FC_STYPE_ACTION:
+			break;
+		}
+		break;
+	case WLAN_FC_TYPE_CTRL:
+		break;
+	case WLAN_FC_TYPE_DATA:
+		break;
+	}
+
+
+
+	echo.i("success build: len=%d, detail:%s, action:%s, config:%s",
+			nbytes,
 			detail->action->config->name,
 			detail->action->name,
 			detail->action->config->name);
@@ -424,10 +683,13 @@ static void *do_wifi_shooter_rtx_func(void *arg)
 
 	config = (Config_t *)arg;
 
+#if 0
 	/*
 	 * FIXME: because of thread environment, MUST finish control
 	 */
 	ShooterRTXModule->finished = false;
+#endif
+
 	/**
 	 * prepare build shooter packet.
 	 */
@@ -460,43 +722,46 @@ static void *do_wifi_shooter_rtx_func(void *arg)
 	 * loop shoot packet
 	 */
 	prev_channel = 0;
-#if 0
-	while (likely(!do_exit)) {
-#endif
 
-		for (pkts = ShooterPackets; pkts; pkts = pkts->next) {
+	echo.i("do wifi shooter start");
 
-			/************************************************************************
-			 *
-			 * TODO: switch wifi channel
-			 * shooter 모듈이 채널 변경 (channel switch) 권한을 가지고 있다.
-			 *
-			 ************************************************************************/
-			wi_set_channel(ShooterWif->wi, pkts->action->channel);
-			if (CaptureWif) {
-				wi_set_channel(CaptureWif->wi, pkts->action->channel);
-			}
-			echo.d("switch channel: [%d] -> [%d]", prev_channel, pkts->action->channel);
-			prev_channel = pkts->action->channel;
+	for (pkts = ShooterPackets;
+			pkts && likely(!do_exit);
+			pkts = pkts->next) {
+
+		/************************************************************************
+		 *
+		 * TODO: switch wifi channel
+		 * shooter 모듈이 채널 변경 (channel switch) 권한을 가지고 있다.
+		 *
+		 ************************************************************************/
+		wi_set_channel(ShooterWif->wi, pkts->action->channel);
+		if (CaptureWif) {
+			wi_set_channel(CaptureWif->wi, pkts->action->channel);
+		}
+		echo.d("switch channel: [%d] -> [%d]", prev_channel, pkts->action->channel);
+		prev_channel = pkts->action->channel;
 
 
-			for (count = 0; count < pkts->action->interval_count; count++) {
-
-				//nbytes = wi_write(ShooterWif->wi, pkts->pkt, pkts->pktlen, NULL);
-
-				usleep(pkts->action->interval + CAPTURE_GUARD_INTERVAL);
-			}
+		for (count = 0;
+				count < pkts->action->interval_count && likely(!do_exit);
+				count++) {
+			nbytes = wi_write(ShooterWif->wi, pkts->pkt, pkts->pktlen, NULL);
+			echo.d("shooter len=%d", nbytes);
+			usleep(pkts->action->interval + CAPTURE_GUARD_INTERVAL);
 
 		}
 
-#if 0
 	}
-#endif
 
+	echo.d("do wifi shooter stop");
+
+#ifdef RTX_FINISH_CONTRL
 	/*
 	 * FIXME: because of thread environment, MUST finish control
 	 */
 	ShooterRTXModule->finished = true;
+#endif
 
 	return NULL;
 }
@@ -505,12 +770,13 @@ static void do_wifi_shooter_rtx(Config_t *config, RTX_module_t *module)
 {
 	ShooterRTXModule = module;
 	ShooterWif->pid = run_or_thread(
-			config, ShooterWif->thread, do_wifi_shooter_rtx_func);
+			config, module->rtx_name,
+			ShooterWif->thread, do_wifi_shooter_rtx_func);
 }
 
 static const char *usage_wifi_shooter_rtx(void)
 {
-	return "wifi_shooter:dev=<ifname>;thread=<yes/no>";
+	return "wifi_shooter:dev=<ifname>,thread=<yes/no>";
 }
 
 void setup_wifi_rtx_module(void)

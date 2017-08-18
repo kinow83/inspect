@@ -108,7 +108,7 @@ am_inspect_OBJECTS = inspect-alloc.$(OBJEXT) inspect-convert.$(OBJEXT) \
 	inspect-match.$(OBJEXT) inspect-output.$(OBJEXT) \
 	inspect-parser.$(OBJEXT) inspect-resource.$(OBJEXT) \
 	inspect-rtx.$(OBJEXT) inspect-string_util.$(OBJEXT) \
-	inspect-module.$(OBJEXT)
+	inspect-module.$(OBJEXT) inspect-thread_wait.$(OBJEXT)
 inspect_OBJECTS = $(am_inspect_OBJECTS)
 inspect_DEPENDENCIES = match_modules/libmatch.a \
 	output_modules/liboutput.a parser_modules/libparser.a \
@@ -391,7 +391,8 @@ resource.c resource.h \
 rtx.c rtx.h \
 string_util.c string_util.h \
 module.c module.h \
-perform.h
+perform.h \
+thread_wait.c thread_wait.h
 
 inspect_LDADD = match_modules/libmatch.a \
 output_modules/liboutput.a \
@@ -570,6 +571,12 @@ inspect-module.o: module.c
 
 inspect-module.obj: module.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-module.obj `if test -f 'module.c'; then $(CYGPATH_W) 'module.c'; else $(CYGPATH_W) '$(srcdir)/module.c'; fi`
+
+inspect-thread_wait.o: thread_wait.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-thread_wait.o `test -f 'thread_wait.c' || echo '$(srcdir)/'`thread_wait.c
+
+inspect-thread_wait.obj: thread_wait.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(inspect_CFLAGS) $(CFLAGS) -c -o inspect-thread_wait.obj `if test -f 'thread_wait.c'; then $(CYGPATH_W) 'thread_wait.c'; else $(CYGPATH_W) '$(srcdir)/thread_wait.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -20,7 +20,8 @@ resource.c resource.h \
 rtx.c rtx.h \
 string_util.c string_util.h \
 module.c module.h \
-perform.h
+perform.h \
+thread_wait.c thread_wait.h
 
 
 inspect_LDADD = match_modules/libmatch.a \

@@ -52,7 +52,11 @@ void debug_h80211_type_names(void);
  */
 #define cv_arr_def(name, type, size) \
     type name[size]; \
-	u8 name##_en;
+	u8 name##_en; \
+	u32 name##_size = size;
+
+#define cv_arr_size(name) \
+	({ name##_size })
 
 #define cv_enabled(name) \
 	({ name##_en == 1; })
@@ -173,6 +177,6 @@ Tag_t *last_tag(Tag_t *first);
 Tag_t *new_tag(Tag_t *prev, u8 id, u8 len, u8 type, u8 *data);
 Tag_t *new_sort_tags(Tag_t *first);
 
-pthread_t run_or_thread(Config_t *, bool, void *(*fp)(void *));
+pthread_t run_or_thread(Config_t *, const char *, bool, void *(*fp)(void *));
 
 #endif /* SRC_RESOURCE_H_ */
