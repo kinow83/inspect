@@ -46,14 +46,14 @@ txtrst='\e[0m'    # Text Reset
  */
 
 #ifndef LOG_NO_COLOR
-	#define VTC_BLUE   "\x1b[34m" //!< Colour following text blue.
-	#define VTC_RED    "\x1b[31m" //!< Colour following text red.
-	#define VTC_GREEN  "\x1b[32m" //!< Colour following text creen.
-	#define VTC_YELLOW "\x1b[33m" //!< Colour following text yellow.
-	#define VTC_BOLD   "\x1b[1m"  //!< Embolden following text.
-	#define VTC_WHITE	  "\x1b[37m" //!< Colour following text white.
+#define VTC_BLUE "\x1b[34m"	  //!< Colour following text blue.
+#define VTC_RED "\x1b[31m"	  //!< Colour following text red.
+#define VTC_GREEN "\x1b[32m"  //!< Colour following text creen.
+#define VTC_YELLOW "\x1b[33m" //!< Colour following text yellow.
+#define VTC_BOLD "\x1b[1m"	  //!< Embolden following text.
+#define VTC_WHITE "\x1b[37m"  //!< Colour following text white.
 
-	#define VTC_RESET  "\x1b[0m" //!< Reset terminal text to default style/colour.
+#define VTC_RESET "\x1b[0m" //!< Reset terminal text to default style/colour.
 #endif
 
 static const char *LOG_STR[] = {
@@ -63,10 +63,9 @@ static const char *LOG_STR[] = {
 	"DEBUG",
 };
 
-#define LOG_BUFSIZE 1024
+#define LOG_BUFSIZE 10240
 
-
-static void console_log(int lv, const char *fmt, va_list ap, 
+static void console_log(int lv, const char *fmt, va_list ap,
 						u8 *hex, size_t len, const char *color, bool bold)
 {
 	struct tm t_now;
@@ -79,13 +78,15 @@ static void console_log(int lv, const char *fmt, va_list ap,
 	static char init_env = 0;
 
 	fp = stdout;
-	if (!fp) {
+	if (!fp)
+	{
 		return;
 	}
 
-	if (init_env == 0) {
+	if (init_env == 0)
+	{
 		// os default file buffering.
-		setvbuf(fp, (char *) NULL, _IOLBF, (size_t) 0);
+		setvbuf(fp, (char *)NULL, _IOLBF, (size_t)0);
 		init_env = 1;
 	}
 
@@ -93,28 +94,36 @@ static void console_log(int lv, const char *fmt, va_list ap,
 	now = time(NULL);
 	localtime_r(&now, &t_now);
 
-	if (log_level >= lv) {
+	if (log_level >= lv)
+	{
 		strftime(strtime, sizeof(strtime), "%H:%M:%S", &t_now);
 		n = vsnprintf(buf, sizeof(buf), fmt, ap);
 
-		if (hex) {
-		    for (i=0; i<(int)len; i++) {
+		if (hex)
+		{
+			for (i = 0; i < (int)len; i++)
+			{
 				n += snprintf(buf + n, sizeof(buf) - n, " %02x", hex[i]);
 			}
 		}
 
-		if (bold == true) {
+		if (bold == true)
+		{
 			fprintf(fp, "%s", VTC_BOLD);
 		}
-		if (hex) {
-			fprintf(fp, "%s%s: %s: (len:%ld) %s\n", 
-										color, strtime, lv_str, len, buf);
-		} else {
+		if (hex)
+		{
+			fprintf(fp, "%s%s: %s: (len:%ld) %s\n",
+					color, strtime, lv_str, len, buf);
+		}
+		else
+		{
 			fprintf(fp, "%s%s: %s: %s\n", color, strtime, lv_str, buf);
 		}
 		fprintf(fp, "%s", VTC_RESET);
 
-		if (lv == L_FATAL) {
+		if (lv == L_FATAL)
+		{
 			exit(1);
 		}
 	}
@@ -261,9 +270,8 @@ struct log_ctx echo = {
 	.i = console_info,
 	.d = console_debug,
 
-	.hf = console_hex_fatal,
-	.he = console_hex_error,
-	.hi = console_hex_info,
-	.hd = console_hex_debug,
+	.fx = console_hex_fatal,
+	.ex = console_hex_error,
+	.ix = console_hex_info,
+	.dx = console_hex_debug,
 };
-

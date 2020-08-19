@@ -27,10 +27,10 @@ struct log_ctx {
 	void (*I)(const char *fmt, ...);
 	void (*D)(const char *fmt, ...);
 
-	void (*hf)(u8 *hex, size_t len, const char *fmt, ...);
-	void (*he)(u8 *hex, size_t len, const char *fmt, ...);
-	void (*hi)(u8 *hex, size_t len, const char *fmt, ...);
-	void (*hd)(u8 *hex, size_t len, const char *fmt, ...);
+	void (*fx)(u8 *hex, size_t len, const char *fmt, ...);
+	void (*ex)(u8 *hex, size_t len, const char *fmt, ...);
+	void (*ix)(u8 *hex, size_t len, const char *fmt, ...);
+	void (*dx)(u8 *hex, size_t len, const char *fmt, ...);
 };
 
 extern int log_level;
